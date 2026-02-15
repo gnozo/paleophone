@@ -6,7 +6,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <>
       <header>
         <h1>PALÉOPHONE</h1>
-        <p>Plateforme de musiques expérimentales</p>
+        <p>Musique Stratifiée</p>
       </header>
 
       <nav>
