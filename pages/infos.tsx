@@ -25,11 +25,11 @@ export default function Infos() {
       </div>
       <hr />
       <p style={{ fontSize: '13px', color: '#999', lineHeight: '2.1' }}>
-        <a href="https://paleophonerecords.bandcamp.com" target="_blank" rel="noopener noreferrer">Bandcamp</a>
+        <a href="https://paleophone.bandcamp.com" target="_blank" rel="noopener noreferrer">Bandcamp</a>
         {' · '}
         <a href="https://alpha.subvert.fm/@paleophone" target="_blank" rel="noopener noreferrer">Subvert</a>
         {' · '}
-        <a href="https://soundcloud.com/paleophonerecords" target="_blank" rel="noopener noreferrer">SoundCloud</a>
+        <a href="https://soundcloud.com/paleophone-records" target="_blank" rel="noopener noreferrer">SoundCloud</a>
         {' · '}
         <a href="https://www.instagram.com/paleophonerecords/" target="_blank" rel="noopener noreferrer">Instagram</a>
         <br />
