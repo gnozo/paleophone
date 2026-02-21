@@ -35,17 +35,6 @@ export default function Association() {
       </p>
 
       <hr />
-
-      <p style={{ fontSize: '13px', color: '#999', margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '600' }}>{fr ? 'Répartition des revenus' : 'Revenue distribution'}</p>
-      <p style={{ fontSize: '14px', color: '#555', lineHeight: '1.9' }}>
-        {fr ? 'Streaming gratuit : 100% artistes' : 'Free streaming: 100% artists'}<br />
-        {fr ? 'Streaming payant / physique : 60% artistes · 20% label · 20% distributeur' : 'Paid streaming / physical: 60% artists · 20% label · 20% distributor'}<br />
-        {fr ? 'Merchandising : 50% bénéfice net artistes' : 'Merchandising: 50% net profit to artists'}
-      </p>
-
-      <p style={{ marginTop: '30px' }}>
-        <a href="/infos">{fr ? '← Infos' : '← Info'}</a>
-      </p>
     </Layout>
   )
 }
