@@ -20,7 +20,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <Link href="/collections">Collections</Link>
         <Link href="/artistes">Artistes</Link>
         <Link href="/projets">Projets</Link>
-        <Link href="/publier">{fr ? 'Publier' : 'Publish'}</Link>
         <Link href="/infos">Infos</Link>
         <span className="locale-switch">
           <Link href={pathname} locale={fr ? 'en' : 'fr'}>
