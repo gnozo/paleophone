@@ -75,7 +75,7 @@ export default function Home() {
         {' · '}
         <a href="https://alpha.subvert.fm/@paleophone" target="_blank" rel="noopener noreferrer">Subvert</a>
         {' · '}
-        <a href="https://soundcloud.com/paleophonerecords" target="_blank" rel="noopener noreferrer">SoundCloud</a>
+        <a href="https://soundcloud.com/paleophone-records" target="_blank" rel="noopener noreferrer">SoundCloud</a>
         {' · '}
         <a href="https://www.instagram.com/paleophonerecords/" target="_blank" rel="noopener noreferrer">Instagram</a>
       </p>
