@@ -71,7 +71,7 @@ export default function Home() {
       />
 
       <p style={{ marginTop: '2rem', fontSize: '13px', color: '#999', lineHeight: '2' }}>
-        <a href="https://paleophonerecords.bandcamp.com" target="_blank" rel="noopener noreferrer">Bandcamp</a>
+        <a href="https://paleophone.bandcamp.com" target="_blank" rel="noopener noreferrer">Bandcamp</a>
         {' · '}
         <a href="https://alpha.subvert.fm/@paleophone" target="_blank" rel="noopener noreferrer">Subvert</a>
         {' · '}
