@@ -20,7 +20,7 @@ export default function Association() {
         {fr ? 'Présidente' : 'President'} : Carin Klonowski<br />
         {fr ? 'Trésorier' : 'Treasurer'} : Vadim Pigounides<br />
         {fr ? 'Secrétaire' : 'Secretary'} : Yann van der Cruyssen<br />
-        {fr ? 'Membre fondateur' : 'Founding member'} : Benjamin Efrati
+        {fr ? 'Coordinateur de collection' : 'Collection coordinator'} : Benjamin Efrati
       </p>
 
       <hr />
