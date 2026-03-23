@@ -360,7 +360,7 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
     </div>
     <div id="w-credits">
       <a href="https://paleophone.fr" target="_blank">Paléophonogramme</a> by <a href="https://paleophone.fr" target="_blank">Paléophone</a>
-      · inspired by <a href="https://www.dstretch.com" target="_blank">DStretch</a> · <a href="mailto:dstretch@prodigy.net">Jon Harman</a>
+      · inspired by <a href="https://www.dstretch.com" target="_blank">DStretch</a> · <a href="/cdn-cgi/l/email-protection#7b1f080f091e0f18133b0b09141f121c0255151e0f">Jon Harman</a>
     </div>
   </div>
 </div>
@@ -382,7 +382,7 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
           <div style="font-size:11px;color:#333;letter-spacing:.1em;margin-bottom:4px;font-family:'SF Mono',monospace">PALÉOPHONOGRAMME</div>
           <div style="font-size:36px;font-weight:700;color:#0c0;letter-spacing:.04em;line-height:1;font-family:'SF Mono',monospace">LuciDStrata</div>
           <div style="font-size:11px;color:#444;font-style:italic;margin-top:8px;font-family:system-ui,sans-serif">a tool for reading the visible strata of the world differently</div>
-          <div style="font-size:10px;color:#2a2a2a;font-style:italic;margin-top:6px;font-family:system-ui,sans-serif">inspired by <a href="https://www.dstretch.com" target="_blank" style="color:#2a2a2a">DStretch</a> · <a href="mailto:dstretch@prodigy.net" style="color:#2a2a2a">Jon Harman</a> · <a href="https://www.dstretch.com" target="_blank" style="color:#2a2a2a">dstretch.com</a></div>
+          <div style="font-size:10px;color:#2a2a2a;font-style:italic;margin-top:6px;font-family:system-ui,sans-serif">inspired by <a href="https://www.dstretch.com" target="_blank" style="color:#2a2a2a">DStretch</a> · <a href="/cdn-cgi/l/email-protection#a4c0d7d0d6c1d0c7cce4d4d6cbc0cdc3dd8acac1d0" style="color:#2a2a2a">Jon Harman</a> · <a href="https://www.dstretch.com" target="_blank" style="color:#2a2a2a">dstretch.com</a></div>
         </div>
         <h1 style="display:none">LuciDStrata</h1>
         <div class="tagline">Paléophonogramme — a tool for reading the visible strata of the world differently</div>
@@ -495,7 +495,7 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
         <div id="drop-sub">or click to browse</div>
         <div id="drop-credits" style="position:relative;z-index:3">
           <a href="https://paleophone.fr" target="_blank">Paléophonogramme</a> by <a href="https://paleophone.fr" target="_blank">Paléophone</a>
-          · inspired by <a href="https://www.dstretch.com" target="_blank">DStretch</a> · <a href="mailto:dstretch@prodigy.net">Jon Harman</a>
+          · inspired by <a href="https://www.dstretch.com" target="_blank">DStretch</a> · <a href="/cdn-cgi/l/email-protection#7b1f080f091e0f18133b0b09141f121c0255151e0f">Jon Harman</a>
         </div>
       </div>
     </div>
@@ -653,7 +653,7 @@ body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ══════════ HELP ══════════ */
 (function(){
   const modal=document.getElementById('help-modal');
@@ -1354,68 +1354,61 @@ function handleDrop(e){
 
 function loadImg(f){
   if(!f)return;
-  console.log('loadImg called:', f.name, f.size, f.type);
-  const url=URL.createObjectURL(f);
-  const img=new Image();
-  img.onload=()=>{
-    try{
-      // Compute display dimensions (cap on mobile)
-      const isMobile=window.innerWidth<=700;
-      const pane=document.getElementById('cpane');
-      let dw=img.naturalWidth,dh=img.naturalHeight;
-      if(isMobile){
-        const maxW=pane.clientWidth*(window.devicePixelRatio||1);
-        const maxH=pane.clientHeight*(window.devicePixelRatio||1);
-        if(dw>maxW){dh=Math.round(dh*maxW/dw);dw=Math.round(maxW);}
-        if(dh>maxH){dw=Math.round(dw*maxH/dh);dh=Math.round(maxH);}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      try{
+        const isMobile=window.innerWidth<=700;
+        const pane=document.getElementById('cpane');
+        let dw=img.naturalWidth,dh=img.naturalHeight;
+        if(isMobile){
+          const maxW=pane.clientWidth*(window.devicePixelRatio||1);
+          const maxH=pane.clientHeight*(window.devicePixelRatio||1);
+          if(dw>maxW){dh=Math.round(dh*maxW/dw);dw=Math.round(maxW);}
+          if(dh>maxH){dw=Math.round(dw*maxH/dh);dh=Math.round(maxH);}
+        }
+        dw=Math.max(1,dw);dh=Math.max(1,dh);
+        imgW=dw;imgH=dh;
+        const c=document.createElement('canvas');
+        c.width=dw;c.height=dh;
+        const x=c.getContext('2d',{willReadFrequently:true});
+        x.drawImage(img,0,0,dw,dh);
+        imgData=x.getImageData(0,0,dw,dh);
+        gCached=null;
+        seqs.forEach(s=>invalidSeq(s));
+        document.getElementById('status-txt').textContent=`${dw}×${dh}`;
+        // Show raw image immediately
+        cv.width=dw;cv.height=dh;
+        cv.getContext('2d').drawImage(img,0,0,dw,dh);
+        // Hide splash and overlay
+        const w=document.getElementById('welcome');
+        if(w){w.classList.add('hidden');w.style.display='none';}
+        const ov=document.getElementById('drop-overlay');
+        if(ov)ov.style.display='none';
+        document.getElementById('badge').style.display='';
+        document.getElementById('badge').textContent=`${dw}×${dh}`;
+        zoom=1;panX=0;panY=0;applyZP();
+        // Apply DStretch
+        setTimeout(()=>{if(!playing)renderManual();},50);
+      }catch(err){
+        document.getElementById('badge').style.display='';
+        document.getElementById('badge').textContent='⚠ '+err.message;
       }
-      // Always at least 1×1
-      dw=Math.max(1,dw);dh=Math.max(1,dh);
-      imgW=dw;imgH=dh;
-
-      // Draw into offscreen canvas
-      const c=document.createElement('canvas');
-      c.width=dw;c.height=dh;
-      const x=c.getContext('2d',{willReadFrequently:true});
-      x.drawImage(img,0,0,dw,dh);
-      imgData=x.getImageData(0,0,dw,dh);
-
-      // Reset cache
-      gCached=null;
-      seqs.forEach(s=>invalidSeq(s));
-      document.getElementById('status-txt').textContent=`${dw}×${dh}`;
-
-      // Show image raw first (instant feedback) then render with DStretch
-      cv.width=dw;cv.height=dh;
-      cv.getContext('2d').drawImage(img,0,0,dw,dh);
-
-      // Hide splash/overlay
-      const w=document.getElementById('welcome');
-      if(w){w.classList.add('hidden');w.style.display='none';}
-      const ov=document.getElementById('drop-overlay');
-      if(ov){ov.style.display='none';}
+    };
+    img.onerror=function(){
       document.getElementById('badge').style.display='';
-      document.getElementById('badge').textContent=`${dw}×${dh} — ${f.name||'image'}`;
-
-      // Reset view
-      zoom=1;panX=0;panY=0;applyZP();
-
-      // Apply DStretch after a tick so raw image is visible first
-      setTimeout(()=>{if(!playing)renderManual();},50);
-
-    }catch(err){
-      document.getElementById('badge').style.display='';
-      document.getElementById('badge').textContent='⚠ '+err.message;
-    }
-    URL.revokeObjectURL(url);
+      document.getElementById('badge').textContent='⚠ could not load image';
+    };
+    img.src=e.target.result;
   };
-  img.onerror=()=>{
+  reader.onerror=function(){
     document.getElementById('badge').style.display='';
-    document.getElementById('badge').textContent='⚠ image load failed';
-    URL.revokeObjectURL(url);
+    document.getElementById('badge').textContent='⚠ could not read file';
   };
-  img.src=url;
+  reader.readAsDataURL(f);
 }
+
 
 /* ══════════ SNAP ══════════ */
 document.getElementById('snap-btn').addEventListener('click',async()=>{
@@ -1787,7 +1780,4 @@ async function batchDl(){
   // Make all .tb, .pb, .mb, .mab, .spb, inputs, selects read on black backing
   const styleEl=document.createElement('style');
   styleEl.textContent=`
-    .tb,.pb,.mb,.mab,.spb{background:#000!important;border-color:#2a2a2a!important}
-    .tb.on,.pb.on,.mb.on,.mab.on,.spb.on{background:#0a1520!important;border-color:#1a3a5a!important}
-    input[type=range]{background:transparent!important}
-    .cgrid,.agrid,.bgrid,.rgrid,.sdet{back
+    .tb,.pb,.mb,.mab,.spb{background:#000!impor
