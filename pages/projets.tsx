@@ -3,10 +3,10 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 const projects = [
-  { name: 'Cheikh Efrita', slug: 'cheikh-efrita', fr: 'Benjamin Efrati · 2024 · Label Monograph', en: 'Benjamin Efrati · 2024 · Label Monograph' },
-  { name: 'Iphigénie', slug: 'iphigenie', fr: 'Benjamin Efrati · 2024 · Paléophone', en: 'Benjamin Efrati · 2024 · Paléophone' },
-  { name: 'Waham El Masir', slug: 'waham-el-masir', fr: 'Benjamin Efrati · sortie prévue décembre 2026', en: 'Benjamin Efrati · expected December 2026' },
-  { name: 'Cool Soussa', slug: 'cool-soussa', fr: 'Paléophone', en: 'Paléophone' },
+  { name: 'Wahem El Masir', slug: 'waham-el-masir', color: 'var(--gold)', fr: 'Benjamin Efrati · mai → décembre 2026', en: 'Benjamin Efrati · May → December 2026' },
+  { name: 'Cheikh Efrita', slug: 'cheikh-efrita', color: 'var(--hot)', fr: 'Benjamin Efrati · 2024 · Label Monograph', en: 'Benjamin Efrati · 2024 · Label Monograph' },
+  { name: 'Iphigénie', slug: 'iphigenie', color: 'var(--lime)', fr: 'Benjamin Efrati · 2024 · Paléophone', en: 'Benjamin Efrati · 2024 · Paléophone' },
+  { name: 'Cool Soussa', slug: 'cool-soussa', color: 'var(--cyan)', fr: 'Paléophone', en: 'Paléophone' },
 ]
 
 export default function Projets() {
@@ -16,11 +16,26 @@ export default function Projets() {
   return (
     <Layout>
       <h2>{fr ? 'Projets' : 'Projects'}</h2>
-      <div style={{ marginTop: '30px', display: 'grid', gap: '24px' }}>
+
+      <div style={{ marginTop: '36px', display: 'grid', gap: '28px' }}>
         {projects.map(p => (
-          <div key={p.slug}>
-            <Link href={`/projets/${p.slug}`}>{p.name}</Link>
-            <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#999' }}>{fr ? p.fr : p.en}</p>
+          <div key={p.slug} style={{
+            paddingBottom: '24px',
+            borderBottom: '1px dashed var(--border)',
+          }}>
+            <Link href={`/projets/${p.slug}`} style={{
+              fontFamily: "'Unbounded', sans-serif",
+              fontSize: '22px',
+              fontWeight: 700,
+              color: p.color,
+              letterSpacing: '-0.01em',
+              borderBottom: 'none',
+            }}>
+              {p.name}
+            </Link>
+            <p className="mono-dim" style={{ margin: '6px 0 0 0' }}>
+              {fr ? p.fr : p.en}
+            </p>
           </div>
         ))}
       </div>
