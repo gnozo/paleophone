@@ -38,7 +38,6 @@ export default function Home() {
             The catalogue spans a wide range — electronic music, club, noise,
             song, sound poetry, sound art, archives — organised into six thematic collections.
           </p>
-          <p>
           <p style={{ fontSize: '14px', color: '#666' }}>
             <Link href="/manifeste">Disclaimer</Link> ·{' '}
             <Link href="/collections">Collections</Link> ·{' '}
