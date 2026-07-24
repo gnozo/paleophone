@@ -21,9 +21,6 @@ export default function Home() {
             Le catalogue couvre un large spectre — musiques électroniques, club, noise, 
             chanson, poésie sonore, sound art, archives — organisé en six collections thématiques.
           </p>
-          <p>
-            Deux sorties par mois, d'avril à décembre.
-          </p>
           <p style={{ fontSize: '14px', color: '#666' }}>
             <Link href="/manifeste">Avertissement</Link> ·{' '}
             <Link href="/collections">Collections</Link> ·{' '}
@@ -42,8 +39,6 @@ export default function Home() {
             song, sound poetry, sound art, archives — organised into six thematic collections.
           </p>
           <p>
-            Two releases per month, from April to December.
-          </p>
           <p style={{ fontSize: '14px', color: '#666' }}>
             <Link href="/manifeste">Disclaimer</Link> ·{' '}
             <Link href="/collections">Collections</Link> ·{' '}
