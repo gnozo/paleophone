@@ -33,7 +33,7 @@ export default function Publier() {
           <p>
             <strong>Vous avez peut-être un morceau qui trouverait ici un contexte plus juste.</strong>
           </p>
-          <p style={{ fontSize: '14px' }}>
+          <p style={{ fontSize: '15px' }}>
             <a href="mailto:paleophonerecords@gmail.com">paleophonerecords@gmail.com</a>
           </p>
         </>
@@ -61,7 +61,7 @@ export default function Publier() {
           <p>
             <strong>You might have a track that belongs here.</strong>
           </p>
-          <p style={{ fontSize: '14px' }}>
+          <p style={{ fontSize: '15px' }}>
             <a href="mailto:paleophonerecords@gmail.com">paleophonerecords@gmail.com</a>
           </p>
         </>

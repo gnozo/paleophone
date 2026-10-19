@@ -21,22 +21,48 @@ export default function Artistes() {
     <Layout>
       <h2>{fr ? 'Artistes' : 'Artists'}</h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '30px', marginTop: '30px', marginBottom: '50px' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: '30px',
+        marginTop: '30px',
+        marginBottom: '50px',
+      }}>
         {featured.map(a => (
           <div key={a.slug}>
-            <Link href={`/artistes/${a.slug}`}>{a.name}</Link>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#999' }}>{a.role}</p>
+            <Link href={`/artistes/${a.slug}`} style={{
+              fontFamily: "'Unbounded', sans-serif",
+              fontSize: '18px',
+              fontWeight: 600,
+              color: 'var(--cyan)',
+              borderBottom: 'none',
+            }}>
+              {a.name}
+            </Link>
+            <p className="mono-dim" style={{ margin: '4px 0 0 0' }}>{a.role}</p>
           </div>
         ))}
       </div>
 
-      <div style={{ borderTop: '1px solid #eee', paddingTop: '30px' }}>
-        <p style={{ fontSize: '12px', color: '#999', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>
+      <div style={{ borderTop: '1px dashed var(--border)', paddingTop: '32px' }}>
+        <p className="small-label" style={{ color: 'var(--hot)' }}>
           {fr ? 'Archive' : 'Archive'}
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px 40px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '10px 32px',
+          marginTop: '16px',
+        }}>
           {archive.map(name => (
-            <span key={name} style={{ fontSize: '14px', color: '#666' }}>{name}</span>
+            <span key={name} style={{
+              fontSize: '14px',
+              color: 'var(--gray-relu)',
+              fontFamily: "'Instrument Serif', serif",
+              fontStyle: 'italic',
+            }}>
+              {name}
+            </span>
           ))}
         </div>
       </div>

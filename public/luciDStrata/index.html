@@ -1088,5 +1088,39 @@ window.LS={cfg,lim,live,seq,signals,DESTINATIONS,JOURNAL,journal,dossier,loadDos
 
 requestAnimationFrame(tick);
 </script>
+<!--paleo-badge-->
+<style>
+#paleoP{position:fixed;top:10px;right:10px;z-index:9000;display:flex;gap:8px;align-items:center;font-family:Inter,system-ui,sans-serif}
+#paleoP a.p{width:30px;height:30px;border:1px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;font:600 16px/1 Baskerville,"Libre Baskerville",Georgia,serif;background:rgba(0,0,0,.85)}
+#paleoP a.p:hover{background:#fff;color:#000}
+#paleoP button.new{border:1px solid #fff;background:rgba(0,0,0,.85);color:#fff;font:600 11px/1 Inter,system-ui,sans-serif;letter-spacing:.08em;padding:8px 10px;cursor:pointer;animation:paleoHue 2s linear infinite;transition:opacity .6s}
+#paleoP button.new.bye{opacity:0;pointer-events:none}
+@keyframes paleoHue{0%{border-color:#ffd700;color:#ffd700}25%{border-color:#00ffcc;color:#00ffcc}50%{border-color:#ff1493;color:#ff1493}75%{border-color:#bfff00;color:#bfff00}100%{border-color:#ffd700;color:#ffd700}}
+#paleoNew{position:fixed;inset:0;z-index:9001;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
+#paleoNew.on{display:flex}
+#paleoNew .box{max-width:520px;background:rgba(0,0,0,.85);color:#fff;border:1px solid #fff;padding:22px 24px;font:15px/1.6 Inter,system-ui,sans-serif}
+#paleoNew .box h2{margin:0 0 12px;font:400 22px/1.2 Baskerville,"Libre Baskerville",Georgia,serif}
+#paleoNew .box p{margin:0 0 10px}
+#paleoNew .box .r{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12px}
+#paleoNew .box button,#paleoNew .box a{border:1px solid #fff;background:transparent;color:#fff;font:inherit;font-size:12px;padding:6px 10px;cursor:pointer;text-decoration:none}
+body>header,#top{padding-right:96px!important}
+@media (max-width:760px){#paleoP{top:6px;right:6px}}
+</style>
+<div id="paleoP"><button class="new" type="button" aria-haspopup="dialog">NEW?</button><a class="p" href="https://paleophone.fr/outils/" title="Paléophone · outils">P</a></div>
+<div id="paleoNew" role="dialog" aria-modal="true"><div class="box"><h2></h2><p class="t1"></p><p class="t2"></p><p class="t3"></p><div class="r"><a href="https://paleophone.fr/outils/">Paléophone · outils</a><span><button type="button" class="lang">EN</button> <button type="button" class="close">fermer</button></span></div></div></div>
+<script>(function(){
+var T={"fr": ["Faire apparaître ce qu'une image contient à peine, en décorrélant ses couleurs puis en faisant tourner cette décorrélation dans le temps.", "Glisser une image ou une vidéo, ou ouvrir la caméra, puis régler relief, rotation et amplitude ; rien n'est envoyé, tout se passe dans le navigateur.", "Page HTML unique sans serveur ; caméra et capture d'écran demandent une adresse locale ou https ; entrée MIDI, export PNG et WebM, session .paleo."], "en": ["Bring out what an image barely contains, by decorrelating its colours and then rotating that decorrelation over time.", "Drop an image or a video, or open the camera, then set relief, rotation and amplitude; nothing is uploaded, everything runs in the browser.", "Single HTML page, no server; camera and screen capture need a local or https address; MIDI input, PNG and WebM export, .paleo session."]}, titre="LucidStrata";
+var lang=(navigator.language||'fr').slice(0,2)==='en'?'en':'fr';
+var b=document.querySelector('#paleoP .new'), d=document.getElementById('paleoNew');
+function fill(){d.querySelector('h2').textContent=titre; ['t1','t2','t3'].forEach(function(k,i){d.querySelector('.'+k).textContent=T[lang][i];});
+  d.querySelector('.lang').textContent=lang==='fr'?'EN':'FR'; d.querySelector('.close').textContent=lang==='fr'?'fermer':'close';}
+var timer=setTimeout(function(){b.classList.add('bye');},15000);
+b.onclick=function(){clearTimeout(timer); fill(); d.classList.add('on');};
+d.querySelector('.close').onclick=function(){d.classList.remove('on'); b.classList.add('bye');};
+d.querySelector('.lang').onclick=function(){lang=lang==='fr'?'en':'fr'; fill();};
+d.addEventListener('click',function(e){if(e.target===d) d.querySelector('.close').onclick();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&d.classList.contains('on')) d.querySelector('.close').onclick();});
+})();</script>
+<!--/paleo-badge-->
 </body>
 </html>
