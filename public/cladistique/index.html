@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banc cladistique · Paléophone</title>
+<style>
+:root{
+  --ardoise:#eceef1; --papier:#f8f9fb; --encre:#1b2026; --encre-pale:#5d6672; --trait:#d4d9e0;
+  --ocre:#a9671f; --ocre-voile:#f3e6d4; --sarcelle:#1f6b74; --sarcelle-voile:#dceaec;
+  --vert:#2f6b45; --ambre:#8a5d12; --rouge:#9b2c2c;
+  --d:"Helvetica Neue",Arial,system-ui,sans-serif; --c:system-ui,-apple-system,"Segoe UI",sans-serif;
+  --m:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ardoise:#13171c; --papier:#1a1f25; --encre:#e4e7eb; --encre-pale:#98a2ae; --trait:#2d343c;
+  --ocre:#d99a4e; --ocre-voile:#33261a; --sarcelle:#5fb3bd; --sarcelle-voile:#15282b;
+  --vert:#6bbd8a; --ambre:#d2a24a; --rouge:#e08585; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ardoise:#13171c; --papier:#1a1f25; --encre:#e4e7eb; --encre-pale:#98a2ae; --trait:#2d343c;
+  --ocre:#d99a4e; --ocre-voile:#33261a; --sarcelle:#5fb3bd; --sarcelle-voile:#15282b;
+  --vert:#6bbd8a; --ambre:#d2a24a; --rouge:#e08585; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--ardoise);color:var(--encre);font:15px/1.55 var(--c);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 16px 72px}
+h1{font:700 1.85rem/1.1 var(--d);margin:0 0 .25em;letter-spacing:-.015em}
+.sous{color:var(--encre-pale);max-width:66ch;margin:0 0 1.4em}
+h2{font:600 1.02rem/1.2 var(--d);margin:0 0 .9em;letter-spacing:.02em;text-transform:uppercase;color:var(--encre-pale);display:flex;align-items:baseline;gap:.6em}
+h2::after{content:"";flex:1;height:1px;background:var(--trait)}
+h3{font:600 .95rem/1.3 var(--d);margin:1.4em 0 .5em}
+.pan{background:var(--papier);border:1px solid var(--trait);border-radius:6px;padding:20px;margin-bottom:18px}
+.rang{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.champ{display:flex;flex-direction:column;gap:4px;min-width:0}
+label{font:500 .74rem/1.1 var(--d);letter-spacing:.06em;text-transform:uppercase;color:var(--encre-pale)}
+input[type=text],input[type=number],select,textarea{font:14px var(--m);background:var(--ardoise);color:var(--encre);border:1px solid var(--trait);border-radius:4px;padding:7px 9px;min-width:0;width:100%}
+input[type=number]{width:7.5em}
+textarea{width:100%;min-height:110px;resize:vertical;line-height:1.45;font-size:12.5px}
+button{font:600 .82rem/1 var(--d);letter-spacing:.04em;text-transform:uppercase;background:var(--encre);color:var(--papier);border:1px solid var(--encre);border-radius:4px;padding:9px 15px;cursor:pointer}
+button.sec{background:transparent;color:var(--encre);border-color:var(--trait)}
+button.ocre{background:var(--ocre);border-color:var(--ocre);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:2px solid var(--ocre);outline-offset:2px}
+.aide{font-size:.84rem;color:var(--encre-pale);margin:.5em 0 0}
+.zone{border:1.5px dashed var(--trait);border-radius:5px;padding:14px;text-align:center;color:var(--encre-pale);font-size:.88rem;cursor:pointer}
+.zone.chaud{border-color:var(--ocre);background:var(--ocre-voile);color:var(--encre)}
+.etat{display:flex;flex-wrap:wrap;gap:6px;margin:.8em 0 0}
+.puce{font:500 .76rem/1 var(--d);padding:5px 9px;border-radius:999px;border:1px solid var(--trait);color:var(--encre-pale)}
+.puce.ok{color:var(--vert);border-color:currentColor}.puce.att{color:var(--ambre);border-color:currentColor}.puce.non{color:var(--rouge);border-color:currentColor}
+.tbl{overflow-x:auto;margin:.9em 0}
+table{border-collapse:collapse;width:100%;font-size:.86rem;font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--trait);padding:5px 8px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td.txt{text-align:left;white-space:normal}
+thead th{background:var(--ardoise);font:600 .74rem/1.2 var(--d);letter-spacing:.05em;text-transform:uppercase;color:var(--encre-pale)}
+td.fort{font-weight:600;color:var(--ocre)}
+caption{caption-side:bottom;text-align:left;font-size:.8rem;color:var(--encre-pale);padding-top:.6em;white-space:normal}
+pre{background:var(--ardoise);border:1px solid var(--trait);border-left:3px solid var(--sarcelle);border-radius:4px;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--m);margin:.8em 0;white-space:pre-wrap;word-break:break-all}
+code{font:.88em var(--m);background:var(--ardoise);padding:.1em .35em;border-radius:3px}
+.prog{height:5px;background:var(--trait);border-radius:3px;overflow:hidden;margin:.9em 0 .3em}
+.prog>i{display:block;height:100%;width:0;background:var(--ocre);transition:width .2s}
+.jauge{display:flex;justify-content:space-between;font:12px var(--m);color:var(--encre-pale)}
+svg.arbre{width:100%;height:auto;display:block}
+.mesures{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--trait);border:1px solid var(--trait);border-radius:5px;overflow:hidden;margin:.9em 0}
+.mesures>div{background:var(--papier);padding:10px 12px}
+.mesures dt{font:500 .7rem/1 var(--d);letter-spacing:.06em;text-transform:uppercase;color:var(--encre-pale);margin:0 0 5px}
+.mesures dd{margin:0;font:500 1.2rem/1 var(--m)}
+details{border-top:1px solid var(--trait);padding-top:.8em;margin-top:1.1em}
+summary{cursor:pointer;font:600 .88rem/1.3 var(--d)}
+details>div{padding-top:.6em}
+td details{border:0;margin:0;padding:0}
+.res{border-left:3px solid var(--ambre);background:color-mix(in srgb,var(--ambre) 8%,transparent);padding:10px 14px;border-radius:0 4px 4px 0;margin:.9em 0;font-size:.9rem}
+.res b{color:var(--ambre)}
+.res.rouge{border-color:var(--rouge);background:color-mix(in srgb,var(--rouge) 8%,transparent)}.res.rouge b{color:var(--rouge)}
+.taxa{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 14px;max-height:280px;overflow:auto;border:1px solid var(--trait);border-radius:4px;padding:8px;font-size:.84rem;margin-top:8px}
+.taxa label{font:400 .84rem/1.3 var(--c);text-transform:none;letter-spacing:0;color:var(--encre);display:flex;gap:6px;align-items:center}
+.taxa .og{margin-left:auto;font:500 .68rem var(--d);color:var(--encre-pale)}
+ol,ul{padding-left:1.3em;margin:.6em 0} li{margin:.3em 0}
+
+/* bibliothèque des matrices */
+#picker{display:grid;gap:12px}
+.grp .grpT{font:600 .72rem/1 var(--d);letter-spacing:.07em;text-transform:uppercase;color:var(--encre-pale);margin:0 0 6px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{position:relative;font:500 .86rem/1.2 var(--c);letter-spacing:0;text-transform:none;background:var(--papier);color:var(--encre);border:1px solid var(--trait);border-radius:5px;padding:8px 11px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;text-align:left}
+.opt .badge{font:700 .62rem/1 var(--d);letter-spacing:.08em;text-transform:uppercase;padding:3px 5px;border-radius:3px;border:1px solid currentColor;color:var(--encre-pale)}
+.opt.canon{border:2px solid var(--ocre);background:var(--ocre-voile);font-weight:600;padding:10px 14px}
+.opt.canon .badge{color:#fff;background:var(--ocre);border-color:var(--ocre)}
+.opt.derivee{border-style:dashed}
+.opt[aria-pressed="true"]{outline:2px solid var(--encre);outline-offset:1px}
+.opt.test[aria-pressed="true"],.opt.derivee[aria-pressed="true"]{background:color-mix(in srgb,var(--rouge) 9%,var(--papier))}
+.opt .tip{position:absolute;left:0;top:calc(100% + 6px);z-index:20;width:max-content;max-width:min(340px,80vw);background:var(--encre);color:var(--papier);font:400 .8rem/1.4 var(--c);padding:8px 10px;border-radius:4px;box-shadow:0 4px 14px rgb(0 0 0/.18);opacity:0;pointer-events:none;transition:opacity .12s .15s;white-space:normal}
+.opt:hover .tip,.opt:focus-visible .tip{opacity:1}
+.bandeau{font:600 .8rem/1.2 var(--d);letter-spacing:.05em;text-transform:uppercase;padding:8px 12px;border-radius:4px;margin:0 0 12px}
+.bandeau.canon{background:var(--ocre);color:#fff}
+.bandeau.test{background:color-mix(in srgb,var(--rouge) 14%,transparent);color:var(--rouge);border:1px solid var(--rouge)}
+.bandeau.autre{background:var(--ardoise);color:var(--encre-pale);border:1px solid var(--trait)}
+.res.canon{border-color:var(--ocre);background:var(--ocre-voile)}.res.canon b{color:var(--ocre)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Banc cladistique</h1>
+<p class="sous">Parcimonie de Fitch, recherche heuristique TBR avec collecte des arbres également
+parcimonieux, consensus strict et majoritaire, bootstrap, tests de partition. Tout est calculé dans
+votre navigateur : la page ne fait aucune requête réseau et la matrice ne quitte pas votre machine.</p>
+
+<div class="pan">
+  <h2>1 · Matrice</h2>
+  <p class="aide" style="margin:0 0 12px">Trois matrices synthétiques sont intégrées pour essayer l'outil : une référence, une variante et une sous-matrice. Déposez la vôtre au format NEXUS.</p>
+  <div id="picker" aria-label="Matrices intégrées"></div>
+  <select id="version" hidden aria-hidden="true"></select>
+  <div class="zone" id="zoneNex" tabindex="0" style="margin-top:14px">Déposez un <code>.nex</code> ici, ou cliquez pour choisir un fichier</div>
+  <input type="file" id="filNex" accept=".nex,.nexus,.txt" hidden>
+  <div class="rang" style="margin-top:12px">
+    <button class="sec" id="btDemo">Matrice de démonstration</button>
+    <button class="sec" id="btColle">Coller du texte NEXUS</button>
+    <button class="sec" id="btDlOrig" title="Le fichier chargé, tel quel">Télécharger la matrice (.nex)</button>
+    <button class="sec" id="btDlSel" title="Avec les taxons et caractères exclus retirés, et l'extra-groupe en bloc PAUP">Télécharger la sélection courante (.nex)</button>
+  </div>
+  <textarea id="txtNex" hidden placeholder="#NEXUS …"></textarea>
+  <div class="etat" id="etatNex"><span class="puce">aucune matrice</span></div>
+  <div id="bandeauSel" style="margin-top:10px"></div>
+  <div id="provenance"></div>
+  <div id="avert"></div>
+  <div id="blocTaxa" hidden>
+    <h3>Taxons inclus et extra-groupe</h3>
+    <p class="aide">Décochez un taxon pour l'exclure de toutes les analyses (équivalent de
+    <code>delete</code> dans PAUP*). L'extra-groupe sert à enraciner les arbres affichés : il ne
+    change ni les longueurs, ni les indices, ni les fréquences de bipartitions, qui sont des propriétés
+    d'arbres non enracinés.</p>
+    <div class="taxa" id="listeTaxa"></div>
+    <div class="rang" style="margin-top:12px">
+      <div class="champ" style="flex:1 1 260px"><label for="exclus">Caractères exclus (ex. 22, 30-35)</label>
+        <input type="text" id="exclus" placeholder="aucun"></div>
+      <div class="champ"><label for="gap">Lacunes « - »</label>
+        <select id="gap"><option value="missing" selected>données manquantes</option><option value="newstate">état supplémentaire</option></select></div>
+    </div>
+    <div class="etat" id="etatSel"></div>
+  </div>
+</div>
+
+<div class="pan">
+  <h2>Versions de la matrice : corrections et effets sur les arbres</h2>
+  <p class="aide">Chaque version est comparée à la référence. Les différences de codage sont listées
+  cellule par cellule sous le menu de la section 1 ; ce tableau en montre l'effet sur la longueur, les
+  indices, le nombre d'arbres les plus parcimonieux et les groupes du consensus strict.</p>
+  <div id="effets"></div>
+  <div class="rang" style="margin-top:10px"><button class="sec" id="btCompare">Recalculer : version choisie contre référence, sélection courante</button><button class="sec" id="btStopC" disabled>Arrêter</button></div>
+  <div id="boiteProgC" hidden><div class="prog"><i id="barreC"></i></div><div class="jauge"><span id="jaugeTxtC">—</span><span id="jaugeTC">—</span></div></div>
+  <div id="sortieCompare"></div>
+</div>
+
+<div class="pan">
+  <h2>2 · Recherche des arbres les plus parcimonieux</h2>
+  <div class="rang">
+    <div class="champ"><label for="reps">Réplicats d'addition</label><input type="number" id="reps" value="20" min="1" max="1000"></div>
+    <div class="champ"><label for="stable">… puis jusqu'à N sans changement</label><input type="number" id="stable" value="50" min="0" max="1000"></div>
+    <div class="champ"><label for="maxtrees">Arbres conservés (max)</label><input type="number" id="maxtrees" value="1000" min="1" max="20000"></div>
+    <div class="champ"><label for="graine">Graine</label><input type="number" id="graine" value="20260908"></div>
+  </div>
+  <div class="rang" style="margin-top:14px">
+    <button class="ocre" id="btGo">Lancer la recherche</button>
+    <button class="sec" id="btStop" disabled>Arrêter</button>
+  </div>
+  <p class="aide">Équivalent de <code>hsearch addseq=random nreps=… swap=tbr multrees=yes</code> :
+  chaque réplicat part d'une addition par étapes en ordre aléatoire, descend par TBR, puis parcourt
+  tous les arbres de même longueur accessibles par TBR. Après les réplicats demandés, la recherche
+  continue jusqu'à N réplicats consécutifs sans longueur plus courte ni arbre nouveau (0 = nombre fixe).
+  Sur une matrice d'une trentaine de taxons, N = 50 suffit en pratique à retrouver tous les arbres à chaque essai.</p>
+  <div id="boiteProg" hidden><div class="prog"><i id="barre"></i></div><div class="jauge"><span id="jaugeTxt">—</span><span id="jaugeT">—</span></div></div>
+  <div id="sortieRech"></div>
+</div>
+
+<div class="pan">
+  <h2>3 · Bootstrap</h2>
+  <div class="rang">
+    <div class="champ"><label for="nboot">Réplicats bootstrap</label><input type="number" id="nboot" value="100" min="10" max="10000"></div>
+    <div class="champ"><label for="brep">Additions par réplicat</label><input type="number" id="brep" value="5" min="1" max="100"></div>
+    <div class="champ"><label for="bmax">Arbres max. par réplicat</label><input type="number" id="bmax" value="100" min="1" max="1000"></div>
+  </div>
+  <div class="rang" style="margin-top:14px"><button class="ocre" id="btBoot">Lancer le bootstrap</button><button class="sec" id="btStopB" disabled>Arrêter</button></div>
+  <p class="aide">Les caractères sont rééchantillonnés avec remise ; chaque réplicat refait une
+  recherche complète, et les arbres d'un même réplicat comptent chacun pour 1/k (convention de PAUP*).
+  C'est le calcul lent : comptez de l'ordre d'une seconde par réplicat pour une trentaine de taxons.
+  Le consensus affiché est le consensus majoritaire des réplicats ; ses valeurs sont des fréquences de
+  bootstrap, pas des probabilités.</p>
+  <div id="boiteProgB" hidden><div class="prog"><i id="barreB"></i></div><div class="jauge"><span id="jaugeTxtB">—</span><span id="jaugeTB">—</span></div></div>
+  <div id="sortieBoot"></div>
+</div>
+
+<div class="pan">
+  <h2>4 · Test de partition <span style="text-transform:none;font-weight:400;letter-spacing:0">(facultatif)</span></h2>
+  <p class="aide">Un CSV à colonnes <code>num,classe,libelle,motif</code>. Les classes <code>R</code> et
+  <code>T</code> sont les deux pans comparés ; toute autre lettre écarte le caractère des deux.</p>
+  <div class="zone" id="zoneCsv" tabindex="0" style="margin-top:10px">Déposez le CSV de partition, ou cliquez</div>
+  <input type="file" id="filCsv" accept=".csv,.txt" hidden>
+  <div class="rang" style="margin-top:12px"><button class="sec" id="btDemoP">Partition de démonstration</button><button class="sec" id="btSansP">Retirer la partition</button></div>
+  <div class="etat" id="etatCsv"><span class="puce">aucune partition</span></div>
+  <div class="rang" style="margin-top:14px">
+    <div class="champ"><label for="perm">Permutations</label><input type="number" id="perm" value="100" min="10" max="5000"></div>
+    <div class="champ"><label for="prep">Réplicats par recherche</label><input type="number" id="prep" value="30" min="1" max="200"></div>
+  </div>
+  <div class="rang" style="margin-top:14px"><button class="ocre" id="btPerm">Lancer le test</button><button class="sec" id="btStopP" disabled>Arrêter</button></div>
+  <p class="aide">Le même nombre de réplicats sert aux valeurs observées ET à chaque permutation. Un
+  effort de recherche moindre sur les permutations allonge leurs arbres et rend l'observé
+  artificiellement significatif : la version précédente de ce banc faisait cette erreur.</p>
+  <div id="boiteProgP" hidden><div class="prog"><i id="barreP"></i></div><div class="jauge"><span id="jaugeTxtP">—</span><span id="jaugeTP">—</span></div></div>
+  <div id="sortiePerm"></div>
+</div>
+
+<div class="pan">
+  <h2>5 · Évaluer des arbres fournis</h2>
+  <p class="aide">Collez un ou plusieurs arbres (Newick, ou fichier d'arbres NEXUS avec ou sans table
+  <code>TRANSLATE</code>). Chaque arbre est évalué sur la matrice et les taxons sélectionnés. C'est le
+  contrôle qui compare ce moteur à un logiciel établi : les arbres les plus parcimonieux de PAUP* ou TNT
+  doivent retrouver leur longueur au pas près.</p>
+  <textarea id="txtTre" placeholder="(A,(B,(C,D)));"></textarea>
+  <div class="rang" style="margin-top:10px"><button class="sec" id="btTre">Évaluer</button></div>
+  <div id="sortieTre"></div>
+</div>
+
+<div class="pan">
+  <h2>6 · Arbres de distance, évalués en parcimonie</h2>
+  <div class="rang"><button class="sec" id="btDist">Calculer</button></div>
+  <div id="sortieDist"></div>
+</div>
+
+<div class="pan">
+  <h2>Méthode, validation et limites</h2>
+  <div class="res"><b>Validé contre un logiciel établi.</b> Sur une matrice réelle de 32 taxons × 79 caractères, ce moteur a retrouvé un à un les arbres les plus parcimonieux conservés par PAUP* 4.0a169 (mêmes longueurs, mêmes M et G, donc mêmes indices), rescoré ses arbres à leur longueur imprimée, et retrouvé les mêmes groupes de bootstrap au-dessus de 50 %. Les matrices intégrées ici sont synthétiques.</div>
+  <div class="res"><b>Les longueurs sont des optima heuristiques.</b> Aucune recherche heuristique ne
+  prouve qu'un arbre plus court n'existe pas. Le nombre d'arbres trouvés est un minimum.</div>
+  <div class="res"><b>Ce que le moteur ne fait pas.</b> Caractères ordonnés, pondérés, matrices de coûts
+  (Sankoff), recherche exacte (branch-and-bound), jackknife, indices de Bremer. Si la matrice en déclare,
+  la page le signale et traite tout comme non ordonné et de poids égal.</div>
+  <div class="res"><b>Longueur d'un consensus.</b> Un consensus n'est pas un arbre le plus
+  parcimonieux. Sa longueur dépend de la convention de comptage des polytomies : en polytomie « molle »
+  (PAUP* <code>polytcount=minsteps</code>), le consensus des arbres les plus parcimonieux mesure L ; en
+  polytomie « dure », il mesure davantage. La page affiche la valeur dure et le dit. Ne jamais calculer
+  CI ou RI sur la longueur d'un consensus.</div>
+  <div class="res"><b>Le RI d'un sous-ensemble de caractères monte mécaniquement quand il y a moins de
+  caractères.</b> Une valeur se compare à un null de même taille tiré du même vivier, jamais à une autre
+  configuration. <b>Le test ILD est contesté</b> (sensible au déséquilibre d'effectifs et aux écarts
+  d'homoplasie) : ne jamais le lire seul.</div>
+  <details><summary>Détail de la méthode</summary><div><ul>
+    <li><b>Fitch</b> (1971), caractères non ordonnés, ensembles d'états en masques de bits ; polymorphismes
+      <code>{01}</code> et incertitudes <code>(01)</code> lus comme ensembles ; <code>?</code> = tous les états.</li>
+    <li><b>M</b> = Σ (états observés − 1) ; <b>G</b> = Σ min<sub>s</sub>(taxons codés sans l'état s) ;
+      <b>CI</b> = M/L ; <b>RI</b> = (G−L)/(G−M) ; <b>RC</b> = CI × RI ; <b>HI</b> = 1 − CI. Définitions de PAUP* (Farris 1989).</li>
+    <li><b>Recherche</b> : addition par étapes aléatoire (un arbre gardé par étape), descente par
+      bissection-reconnexion (TBR) sans limite de reconnexion, puis exploration du plateau des arbres de
+      même longueur. Chaque reconnexion est évaluée exactement par les ensembles de Fitch directionnels,
+      sans reconstruire l'arbre.</li>
+    <li><b>Consensus</b> sur les arbres <i>distincts</i> : strict = bipartitions présentes dans tous ;
+      majoritaire = présentes dans strictement plus de 50 %.</li>
+    <li><b>Bootstrap</b> (Felsenstein 1985) : rééchantillonnage des caractères avec remise, recherche
+      complète à chaque réplicat, arbres d'un réplicat pondérés 1/k.</li>
+    <li><b>Tests de partition</b> : permutations des caractères des deux pans en deux blocs de mêmes
+      effectifs ; ILD : D = L(combiné) − L(R) − L(T) (Farris et al. 1994) ; p = (k+1)/(N+1).</li>
+    <li><b>Aléatoire</b> : mulberry32 amorcé par la graine ; deux exécutions de mêmes paramètres donnent le même résultat.</li>
+  </ul></div></details>
+</div>
+
+</div>
+
+<script id="moteur">
+/* ═══════════════════════════════════════════════════════════════════════════
+   Banc cladistique — moteur v2 (2026-10-01)
+   Parcimonie de Fitch (caractères non ordonnés, poids entiers), arbres non
+   enracinés, recherche heuristique : addition par étapes aléatoire + TBR
+   complet, collecte des arbres également parcimonieux (équivalent MULTREES),
+   consensus strict / majoritaire sur les arbres DISTINCTS, bootstrap.
+   Évaluation des réarrangements par ensembles directionnels (calcul exact de
+   la longueur de chaque reconnexion, sans reconstruire l'arbre).
+   Aucune dépendance. Utilisable dans un navigateur, un Worker ou Node.
+   ═══════════════════════════════════════════════════════════════════════════ */
+'use strict';
+
+/* ───────────── lecture NEXUS ───────────── */
+function lireNexus(txt){
+  const avert = [];
+  const sansComm = s => s.replace(/\[[^\]]*\]/g, '');
+  const fmt = (txt.match(/\bFORMAT\b([^;]*);/i) || [,''])[1];
+  const sym = (re, def) => { const m = fmt.match(re); return m ? m[1].replace(/['"]/g,'') : def; };
+  const MISSING = sym(/MISSING\s*=\s*(\S)/i, '?');
+  const GAP = sym(/GAP\s*=\s*(\S)/i, '-');
+  const MATCH = sym(/MATCHCHAR\s*=\s*(\S)/i, null);
+  if(/\bINTERLEAVE\b/i.test(fmt)) avert.push('format entrelacé (INTERLEAVE) : lignes concaténées par nom de taxon');
+  if(/\bTRANSPOSE\b/i.test(fmt)) throw new Error('matrice transposée (TRANSPOSE) non prise en charge');
+  if(/DATATYPE\s*=\s*(DNA|RNA|NUCLEOTIDE|PROTEIN)/i.test(fmt))
+    avert.push('données moléculaires : lues comme caractères standard non ordonnés');
+  const nch = (txt.match(/NCHAR\s*=\s*(\d+)/i) || [])[1];
+  const ntx = (txt.match(/NTAX\s*=\s*(\d+)/i) || [])[1];
+  const bloc = (txt.match(/\bMATRIX\b([\s\S]*?);/i) || [])[1];
+  if(!bloc) throw new Error('bloc MATRIX introuvable — est-ce bien un fichier NEXUS ?');
+  const lignes = sansComm(bloc).split(/\r?\n/);
+  const rows = new Map();
+  for(let ligne of lignes){
+    ligne = ligne.trim(); if(!ligne) continue;
+    let nom, seq, m;
+    if((m = ligne.match(/^'((?:[^']|'')*)'\s+(.*)$/))){ nom = m[1].replace(/''/g, "'"); seq = m[2]; }
+    else if((m = ligne.match(/^(\S+)\s+(.+)$/))){ nom = m[1].replace(/_/g, ' '); seq = m[2]; }
+    else continue;
+    rows.set(nom, (rows.get(nom) || '') + seq.replace(/\s+/g, ''));
+  }
+  if(!rows.size) throw new Error('aucune ligne de matrice lue');
+  // tokenisation : un symbole, ou un ensemble {..} / (..)
+  const taxons = [...rows.keys()];
+  const cellules = new Map();
+  for(const t of taxons){
+    const s = rows.get(t), out = [];
+    for(let i = 0; i < s.length; i++){
+      const c = s[i];
+      if(c === '{' || c === '('){
+        const fin = s.indexOf(c === '{' ? '}' : ')', i);
+        if(fin < 0) throw new Error('ensemble d\'états non fermé chez « ' + t + ' »');
+        out.push({set: s.slice(i+1, fin).replace(/[\s,]/g,'').split(''), poly: c === '{'});
+        i = fin;
+      } else out.push(c);
+    }
+    cellules.set(t, out);
+  }
+  const longs = new Set(taxons.map(t => cellules.get(t).length));
+  if(longs.size > 1) throw new Error('les lignes n\'ont pas toutes le même nombre de caractères : ' + [...longs].join(', '));
+  const nchar = [...longs][0];
+  if(nch && +nch !== nchar) throw new Error('NCHAR déclaré = ' + nch + ', lu = ' + nchar);
+  if(ntx && +ntx !== taxons.length) avert.push('NTAX déclaré = ' + ntx + ', lu = ' + taxons.length);
+  // MATCHCHAR
+  if(MATCH){ const ref = cellules.get(taxons[0]);
+    for(const t of taxons.slice(1)){ const r = cellules.get(t); for(let i = 0; i < nchar; i++) if(r[i] === MATCH) r[i] = ref[i]; } }
+  // libellés
+  const libelles = {};
+  const bl = txt.match(/\bCHARLABELS\b([\s\S]*?);/i);
+  // CHARLABELS : libellés POSITIONNELS ; les numéros entre crochets sont des commentaires NEXUS
+  if(bl){ const re = /'((?:[^']|'')*)'|([^\s']+)/g; let x, k = 0; const corps = sansComm(bl[1]);
+    while((x = re.exec(corps))){ k++; libelles[k] = (x[1] != null ? x[1].replace(/''/g, "'") : x[2].replace(/_/g, ' ')).trim(); } }
+  // hypothèses que ce moteur ne sait pas appliquer : on le DIT
+  const ass = (txt.match(/BEGIN\s+ASSUMPTIONS\s*;([\s\S]*?)END(BLOCK)?\s*;/i) || [,''])[1];
+  if(/DEFTYPE\s*=\s*ORD/i.test(ass) || /\bCTYPE\b[^;]*\bORD\b/i.test(ass) || /\bTYPESET\b[^;]*\bORD\b/i.test(ass))
+    avert.push('caractères ORDONNÉS déclarés : non pris en charge — tout est traité non ordonné');
+  if(/\bWTSET\b|\bWEIGHTS\b/i.test(ass)) avert.push('pondérations déclarées : non prises en charge — poids égaux');
+  if(/\bEXSET\b/i.test(ass)) avert.push('EXSET déclaré : non appliqué automatiquement — utilisez le champ « exclure »');
+  if(/POLYTCOUNT\s*=\s*MAXSTEPS/i.test(ass)) avert.push('POLYTCOUNT=MAXSTEPS déclaré (voir la note sur les polytomies)');
+  if(/\bUSERTYPE\b|\bSTEPMATRIX\b/i.test(txt)) avert.push('matrice de coûts (USERTYPE) déclarée : non prise en charge');
+  return {taxons, cellules, nchar, libelles, MISSING, GAP, avert};
+}
+
+/* ───────────── encodage ─────────────
+   opts : {taxons (sous-ensemble ordonné), cols (1-based), gap: 'missing'|'newstate'} */
+function encoder(D, opts){
+  const taxons = opts.taxons || D.taxons, cols = opts.cols, gapEtat = opts.gap === 'newstate';
+  const manq = c => c === D.MISSING || c === '?' || (!gapEtat && c === D.GAP);
+  const m = cols.length, n = taxons.length;
+  const etats = cols.map(() => new Map());
+  const symb = (j, c) => { const e = etats[j]; if(!e.has(c)) e.set(c, e.size); return e.get(c); };
+  // premier passage : inventaire des symboles observés (non manquants)
+  for(const t of taxons){ const r = D.cellules.get(t);
+    cols.forEach((ci, j) => { const c = r[ci-1];
+      if(typeof c === 'object') c.set.forEach(s => { if(!manq(s)) symb(j, s); });
+      else if(!manq(c)) symb(j, c); }); }
+  for(const e of etats) if(e.size > 31) throw new Error('plus de 31 états pour un caractère');
+  const X = new Array(n);
+  taxons.forEach((t, k) => {
+    const r = D.cellules.get(t), a = new Int32Array(m);
+    cols.forEach((ci, j) => {
+      const c = r[ci-1], tous = Math.max(1, (1 << etats[j].size) - 1);
+      if(typeof c === 'object'){ let b = 0; c.set.forEach(s => { if(!manq(s)) b |= 1 << symb(j, s); }); a[j] = b || tous; }
+      else a[j] = manq(c) ? tous : 1 << symb(j, c);
+    });
+    X[k] = a;
+  });
+  return {X, n, m, taxons: taxons.slice(), nEtats: etats.map(e => e.size)};
+}
+
+/* M (pas minimaux) et G (pas maximaux) — définitions de PAUP* (Farris 1989).
+   G : pour chaque caractère, le minimum sur les états s du nombre de taxons
+   dont l'ensemble d'états ne contient pas s (longueur sur une étoile). */
+function MG(enc, w){
+  let M = 0, G = 0, inform = 0;
+  for(let j = 0; j < enc.m; j++){
+    const wj = w ? w[j] : 1; if(!wj) continue;
+    const k = enc.nEtats[j]; if(k === 0) continue;
+    const tous = (1 << k) - 1;
+    // M : nombre minimal de changements = (taille minimale d'un ensemble d'états couvrant) - 1
+    // pour des cellules simples c'est (états observés - 1) ; avec polymorphismes on prend le
+    // nombre d'états qu'il faut pour couvrir chaque cellule (approximation gloutonne exacte ici
+    // pour les cas usuels : cellules simples)
+    let obs = 0; for(let i = 0; i < enc.n; i++){ const v = enc.X[i][j]; if(v !== tous && (v & (v-1)) === 0) obs |= v; }
+    let nb = 0; for(let b = obs; b; b &= b-1) nb++;
+    let couvre = obs;
+    for(let i = 0; i < enc.n; i++){ const v = enc.X[i][j]; if(v !== tous && !(v & couvre)){ couvre |= v & -v; nb++; } }
+    M += wj * Math.max(0, nb - 1);
+    let gmin = Infinity;
+    for(let s = 0; s < k; s++){ let c = 0; for(let i = 0; i < enc.n; i++){ const v = enc.X[i][j]; if(!(v & (1 << s))) c++; }
+      if(c < gmin) gmin = c; }
+    G += wj * gmin;
+    // informatif : au moins deux états présents chacun chez au moins deux taxons (cellules simples)
+    const cnt = new Array(k).fill(0);
+    for(let i = 0; i < enc.n; i++){ const v = enc.X[i][j]; if(v !== tous && (v & (v-1)) === 0) cnt[31 - Math.clz32(v)]++; }
+    if(cnt.filter(x => x >= 2).length >= 2) inform++;
+  }
+  return {M, G, informatifs: inform};
+}
+
+/* ───────────── arbres non enracinés ─────────────
+   n feuilles (0..n-1), n-2 nœuds internes (n..2n-3), chacun de degré 3.
+   Représentation : adj[v] = tableau des voisins. */
+function etoile3(a, b, c, n){ // arbre à trois feuilles, nœud interne n
+  const adj = []; adj[a] = [n]; adj[b] = [n]; adj[c] = [n]; adj[n] = [a, b, c]; return adj;
+}
+function aretes(adj){ const E = []; for(let u = 0; u < adj.length; u++) if(adj[u]) for(const v of adj[u]) if(u < v) E.push([u, v]); return E; }
+function copieAdj(adj){ return adj.map(a => a ? a.slice() : a); }
+function remplace(arr, x, y){ const i = arr.indexOf(x); arr[i] = y; }
+
+/* Ensembles directionnels. D(u→v) = ensemble de Fitch du sous-arbre contenant u quand on coupe (u,v),
+   enraciné en u ; C(u→v) = sa longueur pondérée. Calcul paresseux mémoïsé. */
+function Fitch(enc, w){
+  const m = enc.m, X = enc.X;
+  const W = w || null;
+  function combine(a, b, out){ let c = 0;
+    for(let j = 0; j < m; j++){ const x = a[j] & b[j]; if(x) out[j] = x; else { out[j] = a[j] | b[j]; c += W ? W[j] : 1; } }
+    return c; }
+  function mismatch(a, b){ let c = 0; for(let j = 0; j < m; j++) if(!(a[j] & b[j])) c += W ? W[j] : 1; return c; }
+  function mismatchOff(A, oa, b, borne){ let c = 0; for(let j = 0; j < m; j++) if(!(A[oa + j] & b[j])){ c += W ? W[j] : 1; if(c > borne) return c; } return c; }
+  function mismatch2(A, oa, B2, ob, borne){ let c = 0; for(let j = 0; j < m; j++) if(!(A[oa + j] & B2[ob + j])){ c += W ? W[j] : 1; if(c > borne) return c; } return c; }
+  function mismatchBorne(a, b, borne){ let c = 0; for(let j = 0; j < m; j++) if(!(a[j] & b[j])){ c += W ? W[j] : 1; if(c > borne) return c; } return c; }
+  function directionnels(adj, n){
+    const S = new Map(), C = new Map();
+    const cle = (u, v) => u * 4096 + v;
+    function get(u, v){
+      const k = cle(u, v); if(S.has(k)) return k;
+      if(u < n){ S.set(k, X[u]); C.set(k, 0); return k; }
+      const autres = adj[u].filter(x => x !== v);
+      if(autres.length === 1){ const k1 = get(autres[0], u); S.set(k, S.get(k1)); C.set(k, C.get(k1)); return k; }
+      const k1 = get(autres[0], u), k2 = get(autres[1], u);
+      const out = new Int32Array(m);
+      const c = combine(S.get(k1), S.get(k2), out);
+      S.set(k, out); C.set(k, C.get(k1) + C.get(k2) + c); return k;
+    }
+    return {get, S, C, cle};
+  }
+  /* Version rapide : tous les ensembles directionnels d'un arbre en deux parcours, dans des tampons plats.
+     Renvoie {E, sets (E × m), L} : pour chaque arête, l'ensemble de Fitch d'une racine virtuelle posée sur
+     cette arête, et la longueur totale de l'arbre. tampon : 0 ou 1 (deux jeux réutilisables). */
+  const NMAX = 2 * enc.n + 2;
+  const TB = [0, 1].map(() => ({D: new Int32Array(NMAX * 3 * m), C: new Float64Array(NMAX * 3), ES: new Int32Array(NMAX * m)}));
+  const par = new Int32Array(NMAX), ordre = new Int32Array(NMAX), tmp = new Int32Array(m);
+  function slot(adj, u, v){ const a = adj[u]; return a[0] === v ? 0 : a[1] === v ? 1 : 2; }
+  function aretesEtEnsembles(adj, n, tampon, racine){
+    const T = TB[tampon || 0], Dd = T.D, Cc = T.C, ES = T.ES;
+    // racine : une feuille présente
+    let r = racine; if(r == null){ for(let u = 0; u < adj.length; u++) if(adj[u] && adj[u].length === 1){ r = u; break; } }
+    // ordre préfixe itératif
+    let k = 0; ordre[k++] = r; par[r] = -1;
+    for(let i = 0; i < k; i++){ const u = ordre[i]; for(const v of adj[u]) if(v !== par[u]){ par[v] = u; ordre[k++] = v; } }
+    // passage montant : D(u→par(u))
+    for(let i = k - 1; i >= 1; i--){
+      const u = ordre[i], p = par[u], o = (u * 3 + slot(adj, u, p));
+      const off = o * m;
+      if(adj[u].length === 1){ Dd.set(X[u], off); Cc[o] = 0; continue; }
+      let c1 = -1, c2 = -1; for(const x of adj[u]) if(x !== p){ if(c1 < 0) c1 = x; else c2 = x; }
+      const o1 = (c1 * 3 + slot(adj, c1, u)), o2 = (c2 * 3 + slot(adj, c2, u));
+      const a1 = o1 * m, a2 = o2 * m; let c = 0;
+      for(let j = 0; j < m; j++){ const x = Dd[a1 + j] & Dd[a2 + j]; if(x) Dd[off + j] = x; else { Dd[off + j] = Dd[a1 + j] | Dd[a2 + j]; c += W ? W[j] : 1; } }
+      Cc[o] = Cc[o1] + Cc[o2] + c;
+    }
+    // passage descendant : D(u→c) pour chaque enfant c
+    for(let i = 0; i < k; i++){
+      const u = ordre[i], p = par[u];
+      if(adj[u].length === 1){ if(p < 0){ const c = adj[u][0]; const o = u * 3; Dd.set(X[u], o * m); Cc[o] = 0; } continue; }
+      for(const c of adj[u]){ if(c === p) continue;
+        let x1 = -1, x2 = -1; for(const x of adj[u]) if(x !== c){ if(x1 < 0) x1 = x; else x2 = x; }
+        const o = u * 3 + slot(adj, u, c), off = o * m;
+        const o1 = x1 * 3 + slot(adj, x1, u), o2 = x2 * 3 + slot(adj, x2, u);
+        const a1 = o1 * m, a2 = o2 * m; let cc = 0;
+        for(let j = 0; j < m; j++){ const x = Dd[a1 + j] & Dd[a2 + j]; if(x) Dd[off + j] = x; else { Dd[off + j] = Dd[a1 + j] | Dd[a2 + j]; cc += W ? W[j] : 1; } }
+        Cc[o] = Cc[o1] + Cc[o2] + cc;
+      }
+    }
+    // arêtes et ensembles d'arête
+    const E = []; let L = -1;
+    for(let i = 1; i < k; i++){
+      const u = ordre[i], p = par[u];
+      const o1 = u * 3 + slot(adj, u, p), o2 = p * 3 + slot(adj, p, u);
+      const a1 = o1 * m, a2 = o2 * m, off = E.length * m; let c = 0;
+      for(let j = 0; j < m; j++){ const x = Dd[a1 + j] & Dd[a2 + j]; if(x) ES[off + j] = x; else { ES[off + j] = Dd[a1 + j] | Dd[a2 + j]; c += W ? W[j] : 1; } }
+      if(L < 0) L = Cc[o1] + Cc[o2] + c;
+      E.push(p < u ? [p, u] : [u, p]);
+    }
+    return {E, ES, L: L < 0 ? 0 : L};
+  }
+  function longueur(adj, n){ return aretesEtEnsembles(adj, n, 0).L; }
+  return {combine, mismatch, mismatchBorne, mismatchOff, mismatch2, directionnels, longueur, aretesEtEnsembles, m, X};
+}
+
+/* longueur d'un arbre (tableaux imbriqués, polytomies admises).
+   mode 'dure' : polytomie dure (coût = k − effectif maximal d'un état parmi les enfants)
+   mode 'binaire' : l'arbre doit être binaire (vérifié). */
+function longueurImbrique(arbre, enc, w, mode = 'dure'){
+  const m = enc.m, idx = new Map(enc.taxons.map((t, i) => [t, i]));
+  let tot = 0;
+  (function rec(nd){
+    if(typeof nd === 'string'){ if(!idx.has(nd)) throw new Error('taxon inconnu : ' + nd); return enc.X[idx.get(nd)]; }
+    const ks = nd.map(rec), res = new Int32Array(m);
+    for(let j = 0; j < m; j++){
+      const wj = w ? w[j] : 1;
+      if(ks.length === 2){ const x = ks[0][j] & ks[1][j]; if(x) res[j] = x; else { res[j] = ks[0][j] | ks[1][j]; tot += wj; } continue; }
+      const cnt = new Map(); let mx = 0;
+      for(const k of ks) for(let b = k[j]; b; b &= b-1){ const s = b & -b; const c = (cnt.get(s) || 0) + 1; cnt.set(s, c); if(c > mx) mx = c; }
+      let mm = 0; for(const [s, c] of cnt) if(c === mx) mm |= s;
+      res[j] = mm; tot += wj * (ks.length - mx);
+    }
+    return res;
+  })(arbre);
+  return tot;
+}
+
+/* ───────────── bipartitions ───────────── */
+function splits(adj, n){ // renvoie un tableau de clés (chaîne hexadécimale de la moitié qui NE contient PAS le taxon 0)
+  const mots = Math.ceil(n / 32), out = [];
+  const memo = new Map();
+  function sous(u, v){ // feuilles du côté u quand on coupe (u,v)
+    const k = u * 4096 + v; if(memo.has(k)) return memo.get(k);
+    const b = new Uint32Array(mots);
+    if(u < n) b[u >> 5] |= 1 << (u & 31);
+    else for(const x of adj[u]) if(x !== v){ const s = sous(x, u); for(let i = 0; i < mots; i++) b[i] |= s[i]; }
+    memo.set(k, b); return b;
+  }
+  for(const [u, v] of aretes(adj)){
+    if(u < n || v < n) continue; // arête terminale : bipartition triviale
+    let b = sous(u, v);
+    if(b[0] & 1){ const c = sous(v, u); b = c; }
+    out.push(Array.from(b, x => (x >>> 0).toString(16).padStart(8, '0')).join(''));
+  }
+  return out.sort();
+}
+const cleArbre = (adj, n) => splits(adj, n).join('|');
+
+/* ───────────── conversions ───────────── */
+function versImbrique(adj, n, noms, racine){ // racine : indice de feuille (enracinement sur cette feuille)
+  const r = racine == null ? 0 : racine, p = adj[r][0];
+  function rec(u, from){ if(u < n) return noms[u]; return adj[u].filter(x => x !== from).map(x => rec(x, u)); }
+  return [noms[r], rec(p, r)].flatMap(x => x === undefined ? [] : [x]);
+}
+function depuisImbrique(arbre, noms){ // arbre binaire imbriqué -> adj ; les polytomies sont refusées
+  const idx = new Map(noms.map((t, i) => [t, i])), n = noms.length;
+  const adj = []; let suiv = n;
+  function rec(nd){
+    if(typeof nd === 'string'){ if(!idx.has(nd)) throw new Error('taxon inconnu : ' + nd); const i = idx.get(nd); adj[i] = adj[i] || []; return i; }
+    if(nd.length !== 2) throw new Error('arbre non binaire');
+    const a = rec(nd[0]), b = rec(nd[1]), u = suiv++;
+    adj[u] = [a, b]; adj[a].push(u); adj[b].push(u); return u;
+  }
+  // racine : 2 ou 3 enfants
+  let kids = arbre.map(rec);
+  if(kids.length === 2){ // supprimer la racine de degré 2
+    const [a, b] = kids; adj[a].push(b); adj[b].push(a);
+  } else if(kids.length === 3){ const u = suiv++; adj[u] = kids.slice(); kids.forEach(k => adj[k].push(u)); }
+  else throw new Error('racine de degré ' + kids.length);
+  // renuméroter les internes de n à 2n-3
+  const ints = []; for(let u = n; u < adj.length; u++) if(adj[u] && adj[u].length) ints.push(u);
+  const ren = new Map(ints.map((u, i) => [u, n + i]));
+  const f = x => x < n ? x : ren.get(x);
+  const out = [];
+  for(let u = 0; u < adj.length; u++) if(adj[u] && adj[u].length) out[f(u)] = adj[u].map(f).filter(x => x !== undefined);
+  // les liens directs feuille-feuille sont impossibles pour n >= 3
+  return out;
+}
+
+/* ───────────── générateur reproductible ───────────── */
+function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0;
+  let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function melange(a, rnd){ for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ───────────── addition par étapes (aléatoire, hold=1) ───────────── */
+function addition(enc, F, ordre, rnd){
+  const n = enc.n, m = F.m;
+  let adj = etoile3(ordre[0], ordre[1], ordre[2], n);
+  let suiv = n + 1;
+  for(let i = 3; i < ordre.length; i++){
+    const t = ordre[i], Xt = enc.X[t];
+    const {E, ES} = F.aretesEtEnsembles(adj, n, 0);
+    let best = Infinity, cands = [];
+    for(let e = 0; e < E.length; e++){
+      const c = F.mismatchOff(ES, e * m, Xt, Infinity);
+      if(c < best){ best = c; cands = [e]; } else if(c === best) cands.push(e);
+    }
+    const [u, v] = E[cands[Math.floor(rnd() * cands.length)]];
+    const p = suiv++;
+    remplace(adj[u], v, p); remplace(adj[v], u, p);
+    adj[p] = [u, v, t]; adj[t] = [p];
+  }
+  return adj;
+}
+
+/* ───────────── TBR ─────────────
+   Pour chaque arête interne ou terminale (a,b) : S = côté a, R = côté b.
+   On supprime a et b (degré 2 après coupure) ; on évalue toutes les paires
+   (arête f de S, arête e de R) : L = L(R) + L(S) + mismatch(set_S(f), set_R(e)).
+   Renvoie un générateur de voisins (longueur, constructeur). */
+function bisecte(adj, n, a, b){
+  // renvoie {R: {adj, aretes, racineLibre}, S: {...}} avec suppression des nœuds de degré 2
+  const cote = (start, from) => { const vu = new Set([start]); const pile = [start];
+    while(pile.length){ const u = pile.pop(); for(const x of adj[u]) if(!(u === start && x === from) && !vu.has(x)){ vu.add(x); pile.push(x); } }
+    return vu; };
+  const sideA = cote(a, b), sideB = cote(b, a);
+  function partie(nodes, coupe, autre){
+    const ad = [];
+    for(const u of nodes) ad[u] = adj[u].filter(x => !(u === coupe && x === autre));
+    if(coupe >= n && ad[coupe].length === 2){ const [x, y] = ad[coupe]; remplace(ad[x], coupe, y); remplace(ad[y], coupe, x); ad[coupe] = undefined; }
+    const E = []; for(const u of nodes) if(ad[u]) for(const v of ad[u]) if(u < v) E.push([u, v]);
+    return {ad, E, nodes};
+  }
+  return {S: partie(sideA, a, b), R: partie(sideB, b, a), libres: [a, b]};
+}
+function ensembleArete(F, d, u, v){ const ku = d.get(u, v), kv = d.get(v, u); const tmp = new Int32Array(F.m);
+  const c = F.combine(d.S.get(ku), d.S.get(kv), tmp); return {set: tmp, cout: d.C.get(ku) + d.C.get(kv) + c}; }
+
+function voisinsTBR(adj, n, F, Lcur, visiteur){
+  // visiteur(L, construire) ; renvoie true pour arrêter
+  const m = F.m;
+  const E = aretes(adj);
+  for(const [a, b] of E){
+    const bs = bisecte(adj, n, a, b);
+    const S = bs.S, R = bs.R;
+    let eS, ES_S, LS, leafS = -1;
+    if(S.E.length === 0){ leafS = a; eS = [null]; ES_S = F.X[a]; LS = 0; }
+    else { const r = F.aretesEtEnsembles(S.ad, n, 0); eS = r.E; ES_S = r.ES; LS = r.L; }
+    let eR, ES_R, LR, leafR = -1;
+    if(R.E.length === 0){ leafR = b; eR = [null]; ES_R = F.X[b]; LR = 0; }
+    else { const r = F.aretesEtEnsembles(R.ad, n, 1); eR = r.E; ES_R = r.ES; LR = r.L; }
+    const base = LS + LR, borne = Lcur - base;
+    if(borne < 0) continue;
+    for(let i = 0; i < eS.length; i++) for(let k = 0; k < eR.length; k++){
+      if(eS[i] === null && eR[k] === null) continue;
+      const c = F.mismatch2(ES_S, eS[i] === null ? 0 : i * m, ES_R, eR[k] === null ? 0 : k * m, borne);
+      if(c <= borne){
+        const si = eS[i], rk = eR[k];
+        const construire = () => reconnecte(S, R, si === null ? {e: null, leaf: leafS} : {e: si}, rk === null ? {e: null, leaf: leafR} : {e: rk}, bs.libres, n);
+        if(visiteur(base + c, construire)) return true;
+      }
+    }
+  }
+  return false;
+}
+function F_X(F, leaf){ return F.__X ? F.__X[leaf] : null; }
+
+function reconnecte(S, R, s, r, libres, n){
+  const [a, b] = libres; // a : ancien nœud côté S ; b : côté R
+  const adj = [];
+  for(const u of S.nodes) if(S.ad[u]) adj[u] = S.ad[u].slice();
+  for(const u of R.nodes) if(R.ad[u]) adj[u] = R.ad[u].slice();
+  // point d'attache côté S
+  let ps, pr;
+  if(s.e === null) ps = s.leaf;
+  else { const [u, v] = s.e; ps = a; remplace(adj[u], v, ps); remplace(adj[v], u, ps); adj[ps] = [u, v]; }
+  if(r.e === null) pr = r.leaf;
+  else { const [u, v] = r.e; pr = b;
+    remplace(adj[u], v, pr); remplace(adj[v], u, pr); adj[pr] = [u, v]; }
+  // si les deux côtés ont utilisé le même nœud libre (cas feuille), corriger
+  if(ps === pr) throw new Error('reconnexion incohérente');
+  adj[ps] = adj[ps] || []; adj[pr] = adj[pr] || [];
+  adj[ps].push(pr); adj[pr].push(ps);
+  return adj;
+}
+
+/* ───────────── recherche heuristique ─────────────
+   opts : {reps, maxtrees, rnd, w}
+   Pour chaque réplicat : addition aléatoire, descente TBR (première amélioration),
+   puis exploration du plateau (tous les arbres de même longueur accessibles par TBR,
+   jusqu'à maxtrees). Les arbres de la meilleure longueur sont regroupés et dédoublonnés.
+   C'est l'équivalent de « hsearch addseq=random swap=tbr multrees=yes ». */
+function recherche(enc, opts){
+  const n = enc.n, rnd = opts.rnd, maxtrees = opts.maxtrees || 1000;
+  const F = Fitch(enc, opts.w); F.__X = enc.X;
+  const pool = new Map(); let best = Infinity; const longueurs = [];
+  const ordre0 = [...Array(n).keys()];
+  const stopper = opts.stop || (() => false);
+  let plein = false;
+  // descente TBR stricte, puis plateau ; si le plateau révèle un arbre plus court, on reprend la descente
+  function grimpe(adj){
+    let L = F.longueur(adj, n);
+    for(;;){
+      for(;;){ let am = null;
+        voisinsTBR(adj, n, F, L - 1, (Lv, build) => { am = build(); return true; });
+        if(!am) break; adj = am; L = F.longueur(adj, n); }
+      const local = new Map([[cleArbre(adj, n), adj]]), file = [adj]; let mieux = null;
+      while(file.length && local.size < maxtrees && !mieux){
+        const t = file.shift();
+        voisinsTBR(t, n, F, L, (Lv, build) => {
+          const nt = build();
+          if(Lv < L){ mieux = nt; return true; }
+          const k = cleArbre(nt, n);
+          if(!local.has(k)){ local.set(k, nt); file.push(nt); if(local.size >= maxtrees) return true; }
+          return false; });
+      }
+      if(mieux){ adj = mieux; L = F.longueur(adj, n); continue; }
+      return {L, local, plein: local.size >= maxtrees};
+    }
+  }
+  // opts.stable = k : après opts.reps réplicats, continuer jusqu'à k réplicats consécutifs sans
+  // changement (ni longueur plus courte, ni arbre nouveau), dans la limite de opts.repsMax.
+  const stable = opts.stable || 0, repsMax = opts.repsMax || Math.max(opts.reps, 2000);
+  let r = 0, dernier = 0;
+  for(; ; r++){
+    if(r >= opts.reps && (!stable || r - dernier >= stable || r >= repsMax)) break;
+    if(stopper()) break;
+    const adj = addition(enc, F, melange(ordre0.slice(), rnd), rnd);
+    const g = grimpe(adj);
+    longueurs.push(g.L);
+    const avant = pool.size, Lavant = best;
+    if(g.L < best){ best = g.L; pool.clear(); plein = false; }
+    if(g.L === best){ for(const [k, t] of g.local){ if(pool.size >= maxtrees){ plein = true; break; } pool.set(k, t); } if(g.plein) plein = true; }
+    if(best < Lavant || pool.size !== avant) dernier = r + 1;
+    if(opts.progres) opts.progres(r + 1, best, pool.size, stable ? r + 1 - dernier : null);
+  }
+  return {L: best, arbres: [...pool.values()], longueurs: longueurs.sort((a, b) => a - b), plein, repsFaits: r, dernierChangement: dernier, stableAtteint: stable ? r - dernier >= stable : null};
+}
+
+/* ───────────── consensus ─────────────
+   Fréquence de chaque bipartition sur un ensemble d'arbres (poids optionnels).
+   Strict = présente dans tous ; majoritaire = présente dans STRICTEMENT plus de la moitié
+   (au seuil exact de 50 %, deux bipartitions incompatibles pourraient être retenues). */
+function frequences(arbres, n, poids){
+  const freq = new Map(); let tot = 0;
+  arbres.forEach((t, i) => { const w = poids ? poids[i] : 1; tot += w; for(const s of splits(t, n)) freq.set(s, (freq.get(s) || 0) + w); });
+  return {freq, tot};
+}
+function hexVersEns(h, n){ const out = []; for(let w = 0; w * 8 < h.length; w++){ const x = parseInt(h.slice(w*8, w*8+8), 16);
+  for(let b = 0; b < 32; b++) if(x & (1 << b) && w*32 + b < n) out.push(w*32 + b); } return out; }
+function consensus(freqObj, n, seuil){
+  const {freq, tot} = freqObj;
+  const strict = seuil >= 1;
+  return [...freq.entries()].filter(([, f]) => strict ? f >= tot - 1e-9 : f > seuil * tot + 1e-9)
+    .map(([h, f]) => ({ens: new Set(hexVersEns(h, n)), f: f / tot}));
+}
+function splitsAvecF(adj, n){ return splits(adj, n).map(h => ({ens: new Set(hexVersEns(h, n)), f: null})); }
+/* Arbre enraciné à partir de bipartitions (côté sans le taxon 0, tel que produit par splits()).
+   out : indices de l'extra-groupe. Si l'extra-groupe est monophylétique (au sens non enraciné),
+   la racine sépare extra-groupe et intra-groupe ; sinon on enracine sur son premier taxon et on le signale.
+   L'enracinement ne change aucune fréquence : une bipartition n'a pas de racine. */
+function enracine(groupes, n, out){
+  const O = new Set(out && out.length ? out : [0]);
+  const o = [...O][0];
+  const tous = [...Array(n).keys()];
+  const comp = e => new Set(tous.filter(x => !e.has(x)));
+  const clades = groupes.map(g => ({ens: g.ens.has(o) ? comp(g.ens) : g.ens, f: g.f}));
+  const egal = (A, B) => A.size === B.size && [...A].every(x => B.has(x));
+  const I = comp(O);
+  let mono = O.size === 1, fOI = null;
+  for(const c of clades) if(egal(c.ens, I)){ mono = true; fOI = c.f; }
+  const liste = clades.filter(c => c.ens.size > 1 && c.ens.size < n - 1 && !egal(c.ens, I));
+  if(mono){ if(I.size > 1) liste.push({ens: I, f: fOI}); if(O.size > 1) liste.push({ens: O, f: fOI}); }
+  else liste.push({ens: comp(new Set([o])), f: null});
+  liste.sort((a, b) => b.ens.size - a.ens.size);
+  const racine = {kids: tous.slice(), f: null, ens: new Set(tous)};
+  function insere(nd, g){
+    for(const k of nd.kids) if(typeof k === 'object' && !egal(k.ens, g.ens) && [...g.ens].every(x => k.ens.has(x))){ insere(k, g); return; }
+    if(nd.kids.some(k => typeof k === 'object' && egal(k.ens, g.ens))) return;
+    const dedans = nd.kids.filter(k => typeof k === 'object' ? [...k.ens].every(x => g.ens.has(x)) : g.ens.has(k));
+    if(dedans.length < 2 || dedans.length === nd.kids.length) return;
+    nd.kids = nd.kids.filter(k => !dedans.includes(k)).concat([{kids: dedans, ens: g.ens, f: g.f}]);
+  }
+  for(const g of liste) insere(racine, g);
+  const estO = k => typeof k === 'number' ? O.has(k) : [...k.ens].every(x => O.has(x));
+  racine.kids.sort((a, b) => (estO(b) ? 1 : 0) - (estO(a) ? 1 : 0));
+  return {racine, monophyletique: mono};
+}
+function versImbriqueR(nd, noms){ return typeof nd === 'number' ? noms[nd] : nd.kids.map(k => versImbriqueR(k, noms)); }
+function newickR(nd, noms, sup){
+  const q = s => /[\s(),:;'\[\]]/.test(s) ? "'" + s.replace(/'/g, "''") + "'" : s;
+  const rec = (x, top) => typeof x === 'number' ? q(noms[x]) :
+    '(' + x.kids.map(k => rec(k, false)).join(',') + ')' + (!top && sup && x.f != null ? Math.round(x.f * 100) : '');
+  return rec(nd, true) + ';';
+}
+
+/* ───────────── distances ───────────── */
+function distance(enc, a, b, mode){
+  const A = enc.X[a], B = enc.X[b]; let n = 0, k = 0;
+  for(let j = 0; j < enc.m; j++){
+    const tous = (1 << enc.nEtats[j]) - 1;
+    const ma = A[j] === tous && enc.nEtats[j] > 1, mb = B[j] === tous && enc.nEtats[j] > 1;
+    if(mode !== 'brut' && (ma || mb)) continue;
+    n++; if(!(A[j] & B[j])) k++;
+  }
+  return n ? k / n : 0;
+}
+function nj(Dm, noms){
+  const n = noms.length; let act = [...Array(n).keys()];
+  const lab = new Map(act.map(i => [i, noms[i]])); const d = new Map(); const c = (i, j) => i + '|' + j;
+  for(let i = 0; i < n; i++) for(let j = 0; j < n; j++) d.set(c(i, j), Dm[i][j]);
+  let suiv = n;
+  while(act.length > 3){
+    const m = act.length; const r = new Map(act.map(i => [i, act.reduce((s, j) => j === i ? s : s + d.get(c(i, j)), 0)]));
+    let best = null;
+    for(let a = 0; a < act.length; a++) for(let b = a+1; b < act.length; b++){ const i = act[a], j = act[b];
+      const q = (m-2) * d.get(c(i, j)) - r.get(i) - r.get(j); if(!best || q < best.q) best = {q, i, j}; }
+    const {i, j} = best, u = suiv++; lab.set(u, [lab.get(i), lab.get(j)]);
+    for(const k of act){ if(k === i || k === j) continue; const v = .5 * (d.get(c(i, k)) + d.get(c(j, k)) - d.get(c(i, j))); d.set(c(u, k), v); d.set(c(k, u), v); }
+    act = act.filter(x => x !== i && x !== j); act.push(u);
+  }
+  return act.map(i => lab.get(i));
+}
+function upgma(Dm, noms){
+  const n = noms.length; let act = [...Array(n).keys()];
+  const taille = new Map(act.map(i => [i, 1])), lab = new Map(act.map(i => [i, noms[i]]));
+  const d = new Map(); const c = (i, j) => i + '|' + j;
+  for(let i = 0; i < n; i++) for(let j = 0; j < n; j++) d.set(c(i, j), Dm[i][j]);
+  let suiv = n;
+  while(act.length > 1){ let best = null;
+    for(let a = 0; a < act.length; a++) for(let b = a+1; b < act.length; b++){ const v = d.get(c(act[a], act[b])); if(!best || v < best.v) best = {v, i: act[a], j: act[b]}; }
+    const {i, j} = best, u = suiv++; lab.set(u, [lab.get(i), lab.get(j)]); taille.set(u, taille.get(i) + taille.get(j));
+    for(const k of act){ if(k === i || k === j) continue;
+      const v = (taille.get(i) * d.get(c(i, k)) + taille.get(j) * d.get(c(j, k))) / (taille.get(i) + taille.get(j)); d.set(c(u, k), v); d.set(c(k, u), v); }
+    act = act.filter(x => x !== i && x !== j); act.push(u); }
+  return lab.get(act[0]);
+}
+
+/* ───────────── Newick ───────────── */
+function versNewick(nd){
+  if(typeof nd === 'string') return /[\s(),:;'\[\]]/.test(nd) ? "'" + nd.replace(/'/g, "''") + "'" : nd;
+  return '(' + nd.map(versNewick).join(',') + ')';
+}
+function depuisNewick(s){
+  s = s.trim().replace(/\[&?[^\]]*\]/g, '').replace(/;\s*$/, '').trim();
+  let p = 0;
+  const ws = () => { while(p < s.length && /\s/.test(s[p])) p++; };
+  function lit(){
+    ws();
+    if(s[p] === '('){ p++; const k = [];
+      for(;;){ k.push(lit()); ws(); if(s[p] === ','){ p++; continue; } if(s[p] === ')'){ p++; break; } if(p >= s.length) break; p++; }
+      while(p < s.length && !',);'.includes(s[p])) p++;
+      return k; }
+    let out = '';
+    if(s[p] === "'"){ p++; for(;;){ if(p >= s.length) break; if(s[p] === "'"){ if(s[p+1] === "'"){ out += "'"; p += 2; continue; } p++; break; } out += s[p++]; } }
+    else { while(p < s.length){ const c = s[p]; if(',();'.includes(c)) break; if(c === ':' && /^:\s*[\d.eE+-]/.test(s.slice(p))) break; out += c; p++; } out = out.replace(/_/g, ' '); }
+    while(p < s.length && !',);'.includes(s[p])) p++;
+    return out.trim();
+  }
+  return lit();
+}
+const cleNom = t => String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+
+/* ───────────── bootstrap ─────────────
+   Rééchantillonnage des caractères avec remise (poids entiers), recherche complète à chaque réplicat,
+   arbres d'un même réplicat pondérés 1/k (convention de PAUP*). */
+function bootstrap(enc, opts){
+  const n = enc.n, rnd = opts.rnd, B = opts.nboot;
+  const freq = new Map(); let tot = 0;
+  for(let b = 0; b < B; b++){
+    if(opts.stop && opts.stop()) break;
+    const w = new Int32Array(enc.m); for(let j = 0; j < enc.m; j++) w[Math.floor(rnd() * enc.m)]++;
+    const r = recherche(enc, {reps: opts.reps, maxtrees: opts.maxtrees, rnd, w});
+    const k = r.arbres.length;
+    for(const t of r.arbres) for(const s of splits(t, n)) freq.set(s, (freq.get(s) || 0) + 1 / k);
+    tot += 1;
+    if(opts.progres) opts.progres(b + 1, B);
+  }
+  return {freq, tot};
+}
+
+const API = {lireNexus, encoder, MG, Fitch, longueurImbrique, splits, cleArbre, versImbrique, depuisImbrique,
+  mulberry32, melange, recherche, frequences, consensus, hexVersEns, enracine, splitsAvecF, versImbriqueR, newickR, distance, nj, upgma, versNewick, depuisNewick, cleNom, bootstrap, aretes};
+if(typeof module !== 'undefined') module.exports = API;
+if(typeof self !== 'undefined') self.BANC = API;
+
+</script>
+<script>
+'use strict';
+const B = self.BANC;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let TXT = null, D = null, PART = null;
+
+/* ───────── Worker : le moteur tourne hors du fil de l'interface ───────── */
+const CODE_WORKER = `
+self.onmessage = e => {
+  const {tache, txt, sel, opts} = e.data;
+  try{
+    const B = self.BANC;
+    const D = B.lireNexus(txt);
+    const enc = B.encoder(D, {taxons: sel.taxons, cols: sel.cols, gap: sel.gap});
+    const n = enc.n;
+    const prog = (a, b, t) => postMessage({type: 'prog', a, b, t});
+    if(tache === 'recherche'){
+      const r = B.recherche(enc, {reps: opts.reps, stable: opts.stable, maxtrees: opts.maxtrees, rnd: B.mulberry32(opts.graine),
+        progres: (k, L, nt, sc) => prog(sc == null ? k : Math.min(k, opts.reps) + Math.min(sc, opts.stable), opts.reps + (opts.stable || 0), 'réplicat ' + k + ' — L = ' + L + ', ' + nt + ' arbre(s)' + (sc == null ? '' : ' — ' + sc + ' sans changement'))});
+      const mg = B.MG(enc);
+      const fr = B.frequences(r.arbres, n);
+      const enc2 = h => B.hexVersEns(h, n);
+      const freq = [...fr.freq.entries()].map(([h, f]) => [enc2(h), f / fr.tot]);
+      const mpt = r.arbres.slice(0, 2000).map(a => B.splits(a, n).map(enc2));
+      postMessage({type: 'fin', tache, res: {L: r.L, M: mg.M, G: mg.G, inform: mg.informatifs, n, nchar: enc.m,
+        ntrees: r.arbres.length, plein: r.plein, longueurs: r.longueurs, freq, mpt, taxons: enc.taxons, repsFaits: r.repsFaits, dernier: r.dernierChangement, stableAtteint: r.stableAtteint,
+        newick: r.arbres.slice(0, 2000).map(a => B.versNewick(B.versImbrique(a, n, enc.taxons, sel.racine))) }});
+    } else if(tache === 'compare'){
+      // même sélection de taxons (par nom) et mêmes réglages sur la version courante et sur la référence
+      const res = {};
+      for(const [cle, t] of [['ref', opts.txtRef], ['ver', txt]]){
+        const D2 = B.lireNexus(t);
+        const ex = new Set(opts.exclusNoms.map(B.cleNom));
+        const tx = D2.taxons.filter(x => !ex.has(B.cleNom(x)));
+        const e2 = B.encoder(D2, {taxons: tx, cols: Array.from({length: D2.nchar}, (_, i) => i + 1), gap: sel.gap});
+        const r = B.recherche(e2, {reps: opts.reps, stable: opts.stable, maxtrees: opts.maxtrees, rnd: B.mulberry32(opts.graine),
+          progres: (k, L, nt) => prog(k, 0, (cle === 'ref' ? 'référence' : 'version') + ' — réplicat ' + k + ' — L = ' + L + ', ' + nt + ' arbre(s)')});
+        const mg = B.MG(e2), fr = B.frequences(r.arbres, e2.n);
+        const strict = [...fr.freq.entries()].filter(([, f]) => f >= fr.tot - 1e-9).map(([h]) => B.hexVersEns(h, e2.n).map(i => e2.taxons[i]));
+        res[cle] = {taxons: e2.taxons, nchar: e2.m, M: mg.M, G: mg.G, L: r.L, n: r.arbres.length, reps: r.repsFaits, strict};
+      }
+      postMessage({type: 'fin', tache, res});
+    } else if(tache === 'bootstrap'){
+      const t0 = Date.now();
+      const fr = B.bootstrap(enc, {nboot: opts.nboot, reps: opts.reps, maxtrees: opts.maxtrees, rnd: B.mulberry32(opts.graine),
+        progres: (b, T) => prog(b, T, 'réplicat ' + b + ' / ' + T)});
+      const freq = [...fr.freq.entries()].map(([h, f]) => [B.hexVersEns(h, n), f / fr.tot]);
+      postMessage({type: 'fin', tache, res: {freq, tot: fr.tot, n, taxons: enc.taxons, sec: (Date.now() - t0) / 1000}});
+    } else if(tache === 'perm'){
+      const rnd = B.mulberry32(opts.graine);
+      const run = cs => { const e2 = B.encoder(D, {taxons: sel.taxons, cols: cs, gap: sel.gap});
+        const r = B.recherche(e2, {reps: opts.reps, maxtrees: 1, rnd}); const mg = B.MG(e2);
+        return {L: r.L, RI: mg.G !== mg.M ? (mg.G - r.L) / (mg.G - mg.M) : NaN, sp: B.splits(r.arbres[0], e2.n)}; };
+      const rf = (a, b) => { const A = new Set(a), Bb = new Set(b); let d = 0; for(const x of A) if(!Bb.has(x)) d++; for(const x of Bb) if(!A.has(x)) d++; return d; };
+      const R = opts.R, T = opts.T, tous = [...R, ...T].sort((x, y) => x - y);
+      prog(0, opts.perm + 3, 'valeurs observées');
+      const oC = run(tous), oR = run(R), oT = run(T);
+      const obs = {Lc: oC.L, LR: oR.L, LT: oT.L, RI_R: oR.RI, RI_T: oT.RI, D: oC.L - oR.L - oT.L, RF: rf(oR.sp, oT.sp)};
+      const nul = [];
+      for(let k = 0; k < opts.perm; k++){
+        const p = B.melange(tous.slice(), rnd);
+        const a = run(p.slice(0, R.length).sort((x, y) => x - y)), b = run(p.slice(R.length).sort((x, y) => x - y));
+        nul.push({RI_R: a.RI, RI_T: b.RI, D: oC.L - a.L - b.L, RF: rf(a.sp, b.sp)});
+        if(k % 2 === 1 || k === opts.perm - 1) prog(k + 1, opts.perm, 'permutation ' + (k + 1) + ' / ' + opts.perm);
+      }
+      postMessage({type: 'fin', tache, res: {obs, nul}});
+    }
+  }catch(err){ postMessage({type: 'erreur', message: err.message}); }
+};`;
+let URLW = null;
+function nouveauWorker(){
+  if(!URLW) URLW = URL.createObjectURL(new Blob([$('moteur').textContent, CODE_WORKER], {type: 'text/javascript'}));
+  return new Worker(URLW);
+}
+
+/* ───────── chargement ───────── */
+function puces(el, liste){ el.innerHTML = liste.map(([t, c]) => `<span class="puce${c ? ' ' + c : ''}">${esc(t)}</span>`).join(''); }
+let ETAT_SEL = null; // {exclus:Set(cleNom), og:Set(cleNom)} conservé d'une version à l'autre
+function memoSel(){
+  if(!D || $('blocTaxa').hidden) return;
+  const ex = new Set(), og = new Set();
+  document.querySelectorAll('input.inc').forEach(x => { if(!x.checked) ex.add(B.cleNom(D.taxons[+x.dataset.i])); });
+  document.querySelectorAll('input.og').forEach(x => { if(x.checked) og.add(B.cleNom(D.taxons[+x.dataset.i])); });
+  ETAT_SEL = {exclus: ex, og};
+}
+function chargeNex(txt, nom, defaut){
+  try{
+    memoSel();
+    D = B.lireNexus(txt); TXT = txt;
+    puces($('etatNex'), [[nom || 'matrice chargée', 'ok'], [D.taxons.length + ' taxons'], [D.nchar + ' caractères'],
+      ['manquant « ' + D.MISSING + ' »'], ['lacune « ' + D.GAP + ' »']]);
+    $('avert').innerHTML = D.avert.map(a => `<div class="res"><b>Attention :</b> ${esc(a)}</div>`).join('');
+    $('listeTaxa').innerHTML = D.taxons.map((t, i) => `<label><input type="checkbox" class="inc" data-i="${i}" checked> ${esc(t)}
+      <span class="og"><input type="checkbox" class="og" data-i="${i}" aria-label="extra-groupe : ${esc(t)}"> extra</span></label>`).join('');
+    $('blocTaxa').hidden = false;
+    const etat = ETAT_SEL || defaut;
+    if(etat){ document.querySelectorAll('input.inc').forEach(x => { if(etat.exclus.has(B.cleNom(D.taxons[+x.dataset.i]))) x.checked = false; });
+      document.querySelectorAll('input.og').forEach(x => { if(etat.og.has(B.cleNom(D.taxons[+x.dataset.i]))) x.checked = true; }); }
+    if(typeof afficheVersion === 'function') afficheVersion();
+    $('listeTaxa').onchange = majSel; $('exclus').oninput = majSel; $('gap').onchange = majSel;
+    ['sortieRech', 'sortieBoot', 'sortiePerm', 'sortieTre', 'sortieDist'].forEach(id => $(id).innerHTML = '');
+    majSel();
+  }catch(e){ D = null; TXT = null; $('blocTaxa').hidden = true; puces($('etatNex'), [[e.message, 'non']]); $('avert').innerHTML = ''; }
+}
+function intervalles(s, max){
+  const out = new Set();
+  for(const p of s.split(/[,;\s]+/).filter(Boolean)){
+    const m = p.match(/^(\d+)(?:-(\d+))?$/); if(!m) throw new Error('caractères exclus : « ' + p + ' » illisible');
+    const a = +m[1], b = m[2] ? +m[2] : a;
+    for(let i = a; i <= b; i++){ if(i < 1 || i > max) throw new Error('caractère ' + i + ' hors bornes'); out.add(i); }
+  }
+  return out;
+}
+function selection(){
+  if(!D) throw new Error('chargez une matrice');
+  const inc = [...document.querySelectorAll('input.inc')].filter(x => x.checked).map(x => +x.dataset.i);
+  const og = [...document.querySelectorAll('input.og')].filter(x => x.checked).map(x => +x.dataset.i).filter(i => inc.includes(i));
+  if(inc.length < 4) throw new Error('il faut au moins quatre taxons');
+  const ex = intervalles($('exclus').value, D.nchar);
+  const cols = []; for(let i = 1; i <= D.nchar; i++) if(!ex.has(i)) cols.push(i);
+  if(cols.length < 1) throw new Error('aucun caractère retenu');
+  const taxons = inc.map(i => D.taxons[i]);
+  const ogNoms = og.map(i => D.taxons[i]);
+  return {taxons, cols, gap: $('gap').value, outgroup: ogNoms.map(t => taxons.indexOf(t)), racine: ogNoms.length ? taxons.indexOf(ogNoms[0]) : 0, ogNoms};
+}
+function majSel(){
+  try{ const s = selection();
+    const enc = B.encoder(D, s), mg = B.MG(enc);
+    puces($('etatSel'), [[s.taxons.length + ' taxons inclus', 'ok'], [s.cols.length + ' caractères'], [mg.informatifs + ' informatifs'],
+      ['M = ' + mg.M], ['G = ' + mg.G], [s.ogNoms.length ? 'extra-groupe : ' + s.ogNoms.join(', ') : 'pas d\'extra-groupe : racine arbitraire', s.ogNoms.length ? 'ok' : 'att']]);
+  }catch(e){ puces($('etatSel'), [[e.message, 'non']]); }
+}
+function lisFichier(f, suite){
+  const r = new FileReader();
+  r.onload = () => { const t = r.result;
+    if(t.includes('�')){ const r2 = new FileReader(); r2.onload = () => suite(r2.result, f.name + ' (lu en Windows-1252)'); r2.readAsText(f, 'windows-1252'); }
+    else suite(t, f.name); };
+  r.readAsText(f, 'utf-8');
+}
+function depose(zone, input, suite){
+  zone.onclick = () => input.click();
+  zone.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); } };
+  input.onchange = () => { const f = input.files[0]; if(f) lisFichier(f, suite); };
+  ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('chaud'); }));
+  ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('chaud'); }));
+  zone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if(f) lisFichier(f, suite); });
+}
+function lireCsv(txt){
+  const lignes = txt.split(/\r?\n/).filter(l => l.trim());
+  const cls = new Map();
+  const debut = /num/i.test(lignes[0]) && /classe/i.test(lignes[0]) ? 1 : 0;
+  for(let i = debut; i < lignes.length; i++){ const ch = decoupe(lignes[i]); const n = parseInt(ch[0], 10);
+    if(Number.isFinite(n)) cls.set(n, (ch[1] || '').trim().toUpperCase()); }
+  if(!cls.size) throw new Error('aucune ligne de partition lue');
+  return cls;
+}
+function decoupe(l){ const out = []; let cur = '', q = false;
+  for(let i = 0; i < l.length; i++){ const c = l[i];
+    if(q){ if(c === '"'){ if(l[i+1] === '"'){ cur += '"'; i++; } else q = false; } else cur += c; }
+    else if(c === '"') q = true; else if(c === ','){ out.push(cur); cur = ''; } else cur += c; }
+  out.push(cur); return out; }
+function chargeCsv(txt, nom){
+  try{ if(!D) throw new Error("chargez d'abord une matrice");
+    PART = lireCsv(txt);
+    const c = {R: 0, T: 0, X: 0}; for(let i = 1; i <= D.nchar; i++){ const k = PART.get(i); if(k === 'R') c.R++; else if(k === 'T') c.T++; else c.X++; }
+    puces($('etatCsv'), [[nom || 'partition chargée', 'ok'], ['pan R : ' + c.R], ['pan T : ' + c.T], ['écartés : ' + c.X]]);
+  }catch(e){ PART = null; puces($('etatCsv'), [[e.message, 'non']]); }
+}
+depose($('zoneNex'), $('filNex'), (t, n) => { VERSION_COURANTE = null; $('version').value = ''; chargeNex(t, n); if(typeof majPicker === 'function') majPicker(); });
+depose($('zoneCsv'), $('filCsv'), chargeCsv);
+$('btColle').onclick = () => { const t = $('txtNex'); t.hidden = !t.hidden; if(!t.hidden){ t.focus(); t.oninput = () => { if(t.value.trim().length > 40) chargeNex(t.value, 'texte collé'); }; } };
+$('btSansP').onclick = () => { PART = null; puces($('etatCsv'), [['aucune partition']]); };
+
+
+/* ───────── téléchargements ───────── */
+const jour = () => new Date().toISOString().slice(0, 10);
+const slug = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+function telecharge(nom, texte, type){
+  try{
+    const url = URL.createObjectURL(new Blob([texte], {type: type || 'text/plain;charset=utf-8'}));
+    const a = document.createElement('a'); a.href = url; a.download = nom; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    return true;
+  }catch(e){ return false; }
+}
+async function telechargeOuCopie(nom, texte, bouton){
+  const ok = telecharge(nom, texte);
+  if(!ok){ try{ await navigator.clipboard.writeText(texte); bouton.textContent = 'copié dans le presse-papiers'; }catch(_){ bouton.textContent = 'téléchargement impossible ici'; } }
+}
+const qN = s => /^[A-Za-z0-9_.\-]+$/.test(s) ? s : "'" + String(s).replace(/'/g, "''") + "'";
+function nexusSelection(sel){
+  const cel = c => typeof c === 'object' ? (c.poly ? '{' : '(') + c.set.join('') + (c.poly ? '}' : ')') : c;
+  const src = VERSION_COURANTE ? VERSION_COURANTE.fichier + (VERSION_COURANTE.md5 && VERSION_COURANTE.md5 !== '—' ? ' (md5 ' + VERSION_COURANTE.md5 + ')' : '') : 'fichier déposé';
+  const statut = VERSION_COURANTE ? (VERSION_COURANTE.groupe === 'canon' ? 'MATRICE DE RÉFÉRENCE' : 'MATRICE DE TEST') : 'hors bibliothèque';
+  const exT = D.taxons.filter(t => !sel.taxons.includes(t));
+  const exC = []; for(let i = 1; i <= D.nchar; i++) if(!sel.cols.includes(i)) exC.push(i);
+  const L = ['#NEXUS', '', `[ Exporté du banc cladistique le ${jour()} — ${statut} ]`, `[ Source : ${src} ]`,
+    `[ Taxons exclus : ${exT.length ? exT.join(', ') : 'aucun'} ]`, `[ Caractères exclus (numéros de la source) : ${exC.length ? exC.join(',') : 'aucun'} ]`,
+    `[ Extra-groupe choisi dans le banc : ${sel.ogNoms.length ? sel.ogNoms.join(', ') : 'aucun'} ; lacunes : ${sel.gap === 'missing' ? 'données manquantes' : 'état supplémentaire'} ]`, '',
+    'BEGIN TAXA;', `\tDIMENSIONS NTAX=${sel.taxons.length};`, '\tTAXLABELS'];
+  sel.taxons.forEach(t => L.push('\t\t' + qN(t))); L.push('\t;', 'END;', '');
+  L.push('BEGIN CHARACTERS;', `\tDIMENSIONS NCHAR=${sel.cols.length};`, `\tFORMAT DATATYPE=STANDARD MISSING=${D.MISSING} GAP=${D.GAP} SYMBOLS="0123456789";`, '\tCHARLABELS');
+  sel.cols.forEach((c, k) => L.push(`\t\t[${k + 1}] ${qN(D.libelles[c] || ('car' + c))}  [source ${c}]`));
+  L.push('\t;', '\tMATRIX');
+  const w = Math.max(...sel.taxons.map(t => qN(t).length)) + 2;
+  sel.taxons.forEach(t => { const r = D.cellules.get(t); L.push('\t\t' + qN(t).padEnd(w) + sel.cols.map(c => cel(r[c - 1])).join('')); });
+  L.push('\t;', 'END;', '');
+  if(sel.ogNoms.length) L.push('BEGIN PAUP;', '\toutgroup ' + sel.ogNoms.map(qN).join(' ') + ';', 'END;', '');
+  return L.join('\n');
+}
+const baseNom = () => VERSION_COURANTE ? (VERSION_COURANTE.groupe === 'derivee' ? 'sous-matrice_' + VERSION_COURANTE.id : VERSION_COURANTE.id === 'REF' ? 'matrice_reference' : 'matrice-test_' + slug(VERSION_COURANTE.id)) : 'matrice';
+$('btDlOrig').onclick = e => { if(!TXT) return; telechargeOuCopie(baseNom() + '_' + jour() + '.nex', TXT, e.target); };
+$('btDlSel').onclick = e => { let sel; try{ sel = selection(); }catch(err){ e.target.textContent = err.message; return; }
+  telechargeOuCopie(baseNom() + '_selection_' + sel.taxons.length + 'x' + sel.cols.length + '_' + jour() + '.nex', nexusSelection(sel), e.target); };
+
+/* ───────── dessin d'un arbre enraciné {kids, f} ───────── */
+function dessine(racine, noms, support){
+  const H = 18, mg = 8, LX = 320;
+  const prof = nd => typeof nd === 'number' ? 0 : 1 + Math.max(...nd.kids.map(prof));
+  const PMAX = Math.max(prof(racine), 1);
+  const lab = Math.min(300, 8 + 6.4 * Math.max(...noms.map(s => s.length)));
+  let y = 0; const segs = [], txt = [], sup = [];
+  const X = d => mg + LX - (d / PMAX) * LX;
+  function place(nd){
+    if(typeof nd === 'number'){ const o = {y: y++ * H + H / 2 + mg, d: 0}; txt.push(`<text x="${mg + LX + 7}" y="${o.y + 3.8}">${esc(noms[nd])}</text>`); return o; }
+    const ks = nd.kids.map(place);
+    const d = 1 + Math.max(...ks.map(k => k.d)), x = X(d);
+    const y0 = Math.min(...ks.map(k => k.y)), y1 = Math.max(...ks.map(k => k.y));
+    segs.push(`<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}"/>`);
+    ks.forEach(k => segs.push(`<line x1="${x}" y1="${k.y}" x2="${X(k.d)}" y2="${k.y}"/>`));
+    const o = {y: (y0 + y1) / 2, d};
+    if(support && nd.f != null) sup.push(`<text x="${x + 3}" y="${o.y - 3}">${Math.round(nd.f * 100)}</text>`);
+    return o;
+  }
+  const r = place(racine);
+  const W = LX + lab + mg * 2, HT = y * H + mg * 2;
+  return `<svg class="arbre" viewBox="0 0 ${W} ${HT}" role="img" aria-label="arbre de ${noms.length} taxons" style="max-width:${W}px">
+    <g stroke="var(--encre-pale)" stroke-width="1.1" fill="none">${segs.join('')}</g>
+    <g fill="var(--encre)" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11">${txt.join('')}</g>
+    <g fill="var(--ocre)" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" font-weight="600">${sup.join('')}</g></svg>`;
+}
+const vers1 = (freq, seuil) => freq.filter(([, f]) => seuil >= 1 ? f >= 1 - 1e-9 : f > seuil + 1e-9).map(([e, f]) => ({ens: new Set(e), f}));
+
+/* ───────── progression ───────── */
+function progres(suf, a, b, t, t0){
+  $('boiteProg' + suf).hidden = false;
+  $('barre' + suf).style.width = (b ? Math.min(1, a / b) * 100 : 0) + '%';
+  $('jaugeTxt' + suf).textContent = t;
+  $('jaugeT' + suf).textContent = t0 ? ((performance.now() - t0) / 1000).toFixed(0) + ' s' : '';
+}
+function lance(tache, opts, suf, btGo, btStop, sortie, fin){
+  let sel; try{ sel = selection(); }catch(e){ $(sortie).innerHTML = `<div class="res rouge"><b>Impossible :</b> ${esc(e.message)}</div>`; return; }
+  const w = nouveauWorker(), t0 = performance.now();
+  $(btGo).disabled = true; $(btStop).disabled = false; $(sortie).innerHTML = '';
+  const arret = msg => { w.terminate(); $(btGo).disabled = false; $(btStop).disabled = true; if(msg) progres(suf, 0, 1, msg, t0); };
+  $(btStop).onclick = () => arret('arrêté — aucun résultat partiel n\'est affiché');
+  w.onmessage = e => { const m = e.data;
+    if(m.type === 'prog') progres(suf, m.a, m.b, m.t, t0);
+    else if(m.type === 'erreur'){ arret('erreur'); $(sortie).innerHTML = `<div class="res rouge"><b>Erreur :</b> ${esc(m.message)}</div>`; }
+    else if(m.type === 'fin'){ arret(); progres(suf, 1, 1, 'terminé', t0); fin(m.res, sel, (performance.now() - t0) / 1000);
+      if(tache !== 'compare') $(sortie).insertAdjacentHTML('afterbegin', bandeau()); } };
+  w.postMessage({tache, txt: TXT, sel: {taxons: sel.taxons, cols: sel.cols, gap: sel.gap, racine: sel.racine}, opts});
+}
+
+/* ───────── 2 · recherche ───────── */
+$('btGo').onclick = () => {
+  const opts = {reps: +$('reps').value, stable: +$('stable').value, maxtrees: +$('maxtrees').value, graine: +$('graine').value};
+  lance('recherche', opts, '', 'btGo', 'btStop', 'sortieRech', (r, sel, sec) => {
+    window.__res = {r, sel};
+    const CI = r.M / r.L, RI = r.G !== r.M ? (r.G - r.L) / (r.G - r.M) : NaN;
+    const enc = B.encoder(D, sel);
+    const strict = B.enracine(vers1(r.freq, 1), r.n, sel.outgroup);
+    const maj = B.enracine(vers1(r.freq, .5), r.n, sel.outgroup);
+    const Lstrict = B.longueurImbrique(B.versImbriqueR(strict.racine, r.taxons), enc);
+    const Lmaj = B.longueurImbrique(B.versImbriqueR(maj.racine, r.taxons), enc);
+    const hits = r.longueurs.filter(x => x === r.L).length;
+    const hist = [...new Set(r.longueurs)].map(L => `${L} (×${r.longueurs.filter(x => x === L).length})`).join(' · ');
+    const nbS = vers1(r.freq, 1).length, nbM = vers1(r.freq, .5).length;
+    const avOG = sel.outgroup.length && !strict.monophyletique ? `<div class="res"><b>Extra-groupe non monophylétique</b> dans le consensus strict : l'arbre est enraciné sur « ${esc(sel.ogNoms[0])} » seul.</div>` : '';
+    const nw = B.newickR(strict.racine, r.taxons, false), nwm = B.newickR(maj.racine, r.taxons, true);
+    $('sortieRech').innerHTML = `
+      <dl class="mesures">
+        <div><dt>L</dt><dd>${r.L}</dd></div><div><dt>arbres</dt><dd>${r.ntrees}${r.plein ? '+' : ''}</dd></div>
+        <div><dt>CI</dt><dd>${CI.toFixed(4)}</dd></div><div><dt>RI</dt><dd>${isNaN(RI) ? '—' : RI.toFixed(4)}</dd></div>
+        <div><dt>RC</dt><dd>${isNaN(RI) ? '—' : (CI * RI).toFixed(4)}</dd></div><div><dt>HI</dt><dd>${(1 - CI).toFixed(4)}</dd></div>
+        <div><dt>M · G</dt><dd>${r.M} · ${r.G}</dd></div></dl>
+      <p class="aide">${r.n} taxons, ${r.nchar} caractères dont ${r.inform} informatifs · lacunes ${sel.gap === 'missing' ? 'manquantes' : 'état supplémentaire'} ·
+      L atteint par ${hits} réplicat(s) sur ${r.repsFaits} · dernier changement (longueur ou arbre nouveau) au réplicat ${r.dernier}${opts.stable ? (r.stableAtteint ? ` · stable depuis ${r.repsFaits - r.dernier} réplicats` : ' · <b>stabilité non atteinte (plafond de réplicats)</b>') : ''} · profil : ${hist} · ${sec.toFixed(1)} s.</p>
+      ${r.plein ? `<div class="res rouge"><b>Plafond atteint :</b> ${r.ntrees} arbres conservés, il en existe peut-être davantage. Montez « arbres conservés ».</div>` : ''}
+      ${opts.stable ? '' : `<div class="res"><b>Nombre de réplicats fixe.</b> Sans critère de stabilité, rien ne dit que tous les arbres de longueur L ont été trouvés : sur une matrice de 32 taxons, 20 réplicats en trouvent parfois 12 sur 14.</div>`}
+      ${hits < 2 ? `<div class="res"><b>Un seul réplicat a atteint L.</b> L'optimum n'est peut-être pas trouvé : augmentez le nombre de réplicats jusqu'à ce que L et le nombre d'arbres se stabilisent.</div>` : ''}
+      ${avOG}
+      <h3>Consensus strict de ${r.ntrees} arbre(s) — ${nbS} bipartition(s)</h3>
+      ${dessine(strict.racine, r.taxons, false)}
+      <p class="aide">Longueur en polytomies dures : ${Lstrict} (en polytomies molles, un consensus d'arbres les plus parcimonieux mesure L = ${r.L}).</p>
+      <details><summary>Newick du consensus strict</summary><div><pre>${esc(nw)}</pre></div></details>
+      <h3>Consensus majoritaire (> 50 %) des ${r.ntrees} arbres — ${nbM} bipartition(s)</h3>
+      <p class="aide">Les nombres sont le pourcentage des arbres les plus parcimonieux qui contiennent le groupe. <b>Ce ne sont pas des valeurs de bootstrap</b> et ils ne mesurent aucun soutien : seulement l'accord entre arbres de même longueur.</p>
+      ${dessine(maj.racine, r.taxons, true)}
+      <p class="aide">Longueur en polytomies dures : ${Lmaj}.</p>
+      <details><summary>Newick du consensus majoritaire</summary><div><pre>${esc(nwm)}</pre></div></details>
+      <details><summary>Les ${Math.min(r.ntrees, 2000)} arbres (Newick, enracinés pour l'écriture sur ${esc(r.taxons[sel.racine])})</summary><div><pre>${esc(r.newick.map(x => x + ';').join('\n'))}</pre></div></details>
+      <div class="rang" style="margin-top:10px"><button class="sec" id="dlMPT">Télécharger les ${Math.min(r.ntrees, 2000)} arbres (.tre)</button><button class="sec" id="dlCons">Télécharger les consensus (.tre)</button></div>`;
+    const entete = '#NEXUS\n[ Banc cladistique, ' + jour() + ' — ' + (VERSION_COURANTE ? VERSION_COURANTE.fichier : 'fichier déposé') + ' — ' + r.n + ' taxons, ' + r.nchar + ' caractères, L = ' + r.L + ' ]\nBEGIN TREES;\n';
+    $('dlMPT').onclick = e => telechargeOuCopie(baseNom() + '_MPT_L' + r.L + '_' + jour() + '.tre', entete + r.newick.map((x, k) => '\ttree MPT_' + (k + 1) + ' = [&U] ' + x + ';').join('\n') + '\nEND;\n', e.target);
+    $('dlCons').onclick = e => telechargeOuCopie(baseNom() + '_consensus_' + jour() + '.tre', entete + '\ttree strict = [&R] ' + nw + '\n\ttree majoritaire = [&R] ' + nwm + '\nEND;\n', e.target);
+  });
+};
+
+/* ───────── 3 · bootstrap ───────── */
+$('btBoot').onclick = () => {
+  const opts = {nboot: +$('nboot').value, reps: +$('brep').value, maxtrees: +$('bmax').value, graine: +$('graine').value};
+  lance('bootstrap', opts, 'B', 'btBoot', 'btStopB', 'sortieBoot', (r, sel, sec) => {
+    const maj = B.enracine(vers1(r.freq, .5), r.n, sel.outgroup);
+    const n = r.n, rows = r.freq.filter(([, f]) => f >= .05).sort((a, b) => b[1] - a[1]);
+    const motif = e => { const s = new Set(e); const pat = r.taxons.map((_, i) => s.has(i) ? '*' : '.').join(''); return pat; };
+    const petit = e => e.length <= n / 2 ? e : r.taxons.map((_, i) => i).filter(i => !e.includes(i));
+    const ligne = ([e, f]) => `<tr><td style="font-family:var(--m)">${motif(e)}</td><td class="${f > .5 ? 'fort' : ''}">${(100 * f).toFixed(2)} %</td><td class="txt">${esc(petit(e).map(i => r.taxons[i]).join(' + '))}</td></tr>`;
+    const tete = rows.slice(0, 40).map(ligne).join(''), reste = rows.slice(40).map(ligne).join('');
+    const sous5 = r.freq.length - rows.length;
+    setTimeout(() => { const b = $('dlBoot'); if(b) b.onclick = e => {
+      telechargeOuCopie(baseNom() + '_bootstrap' + r.tot + '_' + jour() + '.tre', '#NEXUS\n[ Bootstrap ' + r.tot + ' réplicats, ' + jour() + ' ]\nBEGIN TREES;\n\ttree bootstrap_majoritaire = [&R] ' + B.newickR(maj.racine, r.taxons, true) + '\nEND;\n', e.target);
+      setTimeout(() => telechargeOuCopie(baseNom() + '_bootstrap' + r.tot + '_bipartitions_' + jour() + '.csv', 'frequence_pct;groupe\n' + r.freq.slice().sort((a, b) => b[1] - a[1]).map(([e2, f]) => (100 * f).toFixed(2) + ';' + petit(e2).map(i => r.taxons[i]).join(' + ')).join('\n'), e.target), 400); }; }, 0);
+    $('sortieBoot').innerHTML = `
+      <p class="aide">${r.tot} réplicats · ${opts.reps} addition(s) aléatoire(s) + TBR par réplicat · au plus ${opts.maxtrees} arbres par réplicat · ${sec.toFixed(0)} s.</p>
+      <h3>Consensus majoritaire des réplicats bootstrap</h3>
+      ${dessine(maj.racine, r.taxons, true)}
+      <details><summary>Newick avec fréquences</summary><div><pre>${esc(B.newickR(maj.racine, r.taxons, true))}</pre></div></details>
+      <div class="rang" style="margin-top:10px"><button class="sec" id="dlBoot">Télécharger le consensus bootstrap et la table (.tre + .csv)</button></div>
+      <h3>Bipartitions trouvées à 5 % et plus</h3>
+      <div class="tbl"><table><thead><tr><th>motif (ordre des taxons inclus)</th><th>fréquence</th><th>groupe (côté le plus petit)</th></tr></thead><tbody>${tete}</tbody>
+      <caption>${rows.length > 40 ? 'Les 40 plus fréquentes ; ' + (rows.length - 40) + ' autres à 5 % et plus ci-dessous. ' : ''}${sous5} autres bipartitions sous 5 %. Une fréquence de bootstrap n'est pas une probabilité que le groupe soit vrai ; la littérature retient souvent 70 % comme seuil d'un soutien appréciable, et ce seuil est lui-même conventionnel.</caption></table></div>
+      ${reste ? `<details><summary>Les ${rows.length - 40} autres bipartitions à 5 % et plus</summary><div class="tbl"><table><tbody>${reste}</tbody></table></div></details>` : ''}`;
+  });
+};
+
+/* ───────── 4 · test de partition ───────── */
+$('btPerm').onclick = () => {
+  if(!PART){ $('sortiePerm').innerHTML = `<div class="res rouge"><b>Impossible :</b> chargez une partition.</div>`; return; }
+  let sel; try{ sel = selection(); }catch(e){ return; }
+  const R = sel.cols.filter(i => PART.get(i) === 'R'), T = sel.cols.filter(i => PART.get(i) === 'T');
+  if(R.length < 3 || T.length < 3){ $('sortiePerm').innerHTML = `<div class="res rouge"><b>Impossible :</b> il faut au moins trois caractères de chaque côté (R = ${R.length}, T = ${T.length}).</div>`; return; }
+  const opts = {R, T, perm: +$('perm').value, reps: +$('prep').value, graine: +$('graine').value};
+  lance('perm', opts, 'P', 'btPerm', 'btStopP', 'sortiePerm', (r, s, sec) => {
+    const o = r.obs, nul = r.nul;
+    const p = (v, x, sens) => ((sens === 'sup' ? v.filter(y => y >= x - 1e-12) : v.filter(y => y <= x + 1e-12)).length + 1) / (v.length + 1);
+    const q = v => { const t = v.slice().sort((a, b) => a - b); return {min: t[0], med: t[Math.floor(t.length / 2)], max: t[t.length - 1]}; };
+    const f = x => Number.isInteger(x) ? x : x.toFixed(4);
+    const lig = (nom, obs, v, sens) => { const Q = q(v), pv = p(v, obs, sens);
+      return `<tr><td>${nom}</td><td class="fort">${f(obs)}</td><td>${f(Q.min)}</td><td>${f(Q.med)}</td><td>${f(Q.max)}</td><td class="${pv < .05 ? 'fort' : ''}">${pv.toFixed(4)}</td></tr>`; };
+    $('sortiePerm').innerHTML = `
+      <p class="aide">R = ${R.length} caractères, T = ${T.length} · ${nul.length} permutations · ${opts.reps} réplicats par recherche, pour l'observé comme pour chaque permutation · ${sec.toFixed(0)} s.</p>
+      <div class="tbl"><table><thead><tr><th>mesure</th><th>observé</th><th>null min</th><th>null méd.</th><th>null max</th><th>p</th></tr></thead><tbody>
+      ${lig('RI du pan R', o.RI_R, nul.map(x => x.RI_R), 'sup')}${lig('RI du pan T', o.RI_T, nul.map(x => x.RI_T), 'sup')}
+      ${lig('Robinson-Foulds R/T', o.RF, nul.map(x => x.RF), 'inf')}${lig('D (ILD)', o.D, nul.map(x => x.D), 'sup')}
+      </tbody><caption>L(combiné) = ${o.Lc}, L(R) = ${o.LR}, L(T) = ${o.LT}. p = (k+1)/(N+1), unilatéral. RF compare un arbre optimal de chaque pan ; quand plusieurs arbres sont également parcimonieux, ce choix ajoute du bruit.</caption></table></div>
+      <div class="res"><b>Lire ensemble.</b> Un ILD significatif avec une distance de Robinson-Foulds au niveau du hasard ne signale pas un conflit de topologies : il signale un écart de taux d'homoplasie entre pans d'effectifs inégaux. Avec peu de permutations, p n'est connu qu'à ±1/√N près.</div>`;
+  });
+};
+
+/* ───────── 5 · arbres fournis ───────── */
+$('btTre').onclick = () => {
+  let sel; try{ sel = selection(); }catch(e){ $('sortieTre').innerHTML = `<div class="res rouge">${esc(e.message)}</div>`; return; }
+  const enc = B.encoder(D, sel), F = B.Fitch(enc);
+  let s = $('txtTre').value.replace(/\[(?!&)[^\]]*\]/g, '');
+  const trad = new Map();
+  const mt = s.match(/\bTRANSLATE\b([\s\S]*?);/i);
+  if(mt){ for(const ent of mt[1].split(',')){ const m = ent.trim().match(/^(\S+)\s+('(?:[^']|'')*'|\S+)$/); if(m) trad.set(m[1], m[2].replace(/^'|'$/g, '').replace(/''/g, "'").replace(/_/g, ' ')); }
+    s = s.replace(mt[0], ''); }
+  const trees = [...s.matchAll(/(?:tree\s+[^=;]+=\s*)?(?:\[&[^\]]*\]\s*)?(\([^;]*\))\s*;/gi)].map(m => m[1]);
+  if(!trees.length){ $('sortieTre').innerHTML = `<div class="res">Aucun arbre reconnu. Chaque arbre doit finir par un point-virgule.</div>`; return; }
+  const idx = new Map(enc.taxons.map(t => [B.cleNom(t), t]));
+  const res = trees.map((t, i) => { try{
+    const conv = nd => { if(typeof nd === 'string'){ const nom = trad.get(nd) || nd; const k = B.cleNom(nom); if(!idx.has(k)) throw new Error('taxon inconnu ou exclu : « ' + nom + ' »'); return idx.get(k); } return nd.map(conv); };
+    const a = conv(B.depuisNewick(t));
+    const fe = []; (function f(x){ if(typeof x === 'string') fe.push(x); else x.forEach(f); })(a);
+    if(fe.length !== enc.n) throw new Error(fe.length + ' feuilles pour ' + enc.n + ' taxons sélectionnés');
+    let binaire = true; (function f(x, top){ if(typeof x === 'string') return; if(x.length !== 2 && !(top && x.length === 3)) binaire = false; x.forEach(y => f(y, false)); })(a, true);
+    return {i: i + 1, L: binaire ? F.longueur(B.depuisImbrique(a, enc.taxons), enc.n) : B.longueurImbrique(a, enc), binaire};
+  }catch(e){ return {i: i + 1, err: e.message}; } });
+  const ok = res.filter(r => !r.err).map(r => r.L), u = [...new Set(ok)].sort((a, b) => a - b);
+  $('sortieTre').innerHTML = `<div class="tbl"><table><thead><tr><th>arbre</th><th>longueur</th><th>type</th></tr></thead><tbody>
+    ${res.map(r => `<tr><td>n° ${r.i}</td><td class="${r.err ? '' : 'fort'}">${r.err ? esc(r.err) : r.L}</td><td>${r.err ? '' : r.binaire ? 'binaire' : 'polytomies (comptées dures)'}</td></tr>`).join('')}
+    </tbody><caption>${ok.length} arbre(s) évalué(s)${u.length === 1 ? ', tous à ' + u[0] : u.length ? ', longueurs : ' + u.join(', ') : ''}.</caption></table></div>`;
+};
+
+/* ───────── 6 · distances ───────── */
+$('btDist').onclick = () => {
+  let sel; try{ sel = selection(); }catch(e){ $('sortieDist').innerHTML = `<div class="res rouge">${esc(e.message)}</div>`; return; }
+  const enc = B.encoder(D, sel), F = B.Fitch(enc), n = enc.n;
+  const lignes = ['pairwise', 'brut'].map(mode => {
+    const Dm = enc.taxons.map((_, a) => enc.taxons.map((_, b) => B.distance(enc, a, b, mode)));
+    const L = t => { const a = Array.isArray(t) && t.length === 3 ? t : t; return B.longueurImbrique(a, enc); };
+    return `<tr><td>${mode === 'pairwise' ? 'Hamming, délétion par paires' : 'Hamming, manquants comptés comme différences nulles'}</td><td>${L(B.nj(Dm, enc.taxons))}</td><td>${L(B.upgma(Dm, enc.taxons))}</td></tr>`;
+  });
+  $('sortieDist').innerHTML = `<div class="tbl"><table><thead><tr><th>distance</th><th>NJ</th><th>UPGMA</th></tr></thead><tbody>${lignes.join('')}</tbody>
+    <caption>Longueur de parcimonie d'arbres construits par agrégation de distances. Un arbre de distance n'est pas un arbre parcimonieux : sa longueur sert de point de comparaison, pas de résultat.</caption></table></div>`;
+};
+
+/* ───────── démonstration ───────── */
+const DEMO_NEX = `#NEXUS
+[ Matrice de démonstration — données synthétiques, 10 taxons, 16 caractères. Elle ne provient d'aucun corpus réel. ]
+BEGIN DATA;
+  DIMENSIONS NTAX=10 NCHAR=16;
+  FORMAT DATATYPE=STANDARD MISSING=? GAP=- SYMBOLS="012";
+  MATRIX
+    Extragroupe   0000000000000000
+    A1            1110000000110100
+    A2            1111000000100100
+    A3            1110000010100110
+    A4            1111000000100101
+    B1            0000111100011010
+    B2            0000111000011011
+    B3            0000111100011000
+    B4            0000111010010010
+    Isole         0000000011000001
+  ;
+END;`;
+const DEMO_CSV = `num,classe,libelle,motif
+1,R,,\n2,R,,\n3,R,,\n4,R,,\n5,R,,\n6,R,,\n7,R,,\n8,R,,\n9,T,,\n10,T,,\n11,T,,\n12,T,,\n13,T,,\n14,T,,\n15,T,,\n16,T,,`;
+$('btDemo').onclick = () => { ETAT_SEL = null; VERSION_COURANTE = null; $('version').value = ''; chargeNex(DEMO_NEX, 'démonstration (synthétique)'); document.querySelector('input.og[data-i="0"]').checked = true; majSel(); majPicker(); };
+$('btDemoP').onclick = () => chargeCsv(DEMO_CSV, 'démonstration (8 / 8)');
+
+
+
+/* ───────── bibliothèque des versions de la matrice ───────── */
+const VERSIONS = [{"id": "REF", "fichier": "reference_synthetique.nex", "date": "19/10/2026", "md5": "8a6257642e6c0942a93a758fd0ecd4fe", "statut": "Référence", "note": "Matrice synthétique : 20 taxons et un extra-groupe (Socle), 48 caractères, générés le long d'un arbre connu avec un bruit d'homoplasie et quelques lacunes. Elle ne provient d'aucun corpus réel ; elle sert à essayer l'outil.", "txt": "#NEXUS\n\n[ Matrice de reference synthetique : 21 taxons, 48 caracteres. Aucune donnee reelle. ]\n\nBEGIN TAXA;\n\tDIMENSIONS NTAX=21;\n\tTAXLABELS\n\t\tSocle\n\t\tAube\n\t\tBrume\n\t\tCendre\n\t\tDune\n\t\tEcume\n\t\tFalaise\n\t\tGreve\n\t\tHoule\n\t\tIlot\n\t\tJusant\n\t\tKarst\n\t\tLagune\n\t\tMarais\n\t\tNacre\n\t\tOrage\n\t\tPluie\n\t\tQuartz\n\t\tRecif\n\t\tSable\n\t\tTourbe\n\t;\nEND;\n\nBEGIN CHARACTERS;\n\tDIMENSIONS NCHAR=48;\n\tFORMAT DATATYPE=STANDARD MISSING=? GAP=- SYMBOLS=\"012\";\n\tCHARSTATELABELS\n\t\t1 'caractere 01',\n\t\t2 'caractere 02',\n\t\t3 'caractere 03',\n\t\t4 'caractere 04',\n\t\t5 'caractere 05',\n\t\t6 'caractere 06',\n\t\t7 'caractere 07',\n\t\t8 'caractere 08',\n\t\t9 'caractere 09',\n\t\t10 'caractere 10',\n\t\t11 'caractere 11',\n\t\t12 'caractere 12',\n\t\t13 'caractere 13',\n\t\t14 'caractere 14',\n\t\t15 'caractere 15',\n\t\t16 'caractere 16',\n\t\t17 'caractere 17',\n\t\t18 'caractere 18',\n\t\t19 'caractere 19',\n\t\t20 'caractere 20',\n\t\t21 'caractere 21',\n\t\t22 'caractere 22',\n\t\t23 'caractere 23',\n\t\t24 'caractere 24',\n\t\t25 'caractere 25',\n\t\t26 'caractere 26',\n\t\t27 'caractere 27',\n\t\t28 'caractere 28',\n\t\t29 'caractere 29',\n\t\t30 'caractere 30',\n\t\t31 'caractere 31',\n\t\t32 'caractere 32',\n\t\t33 'caractere 33',\n\t\t34 'caractere 34',\n\t\t35 'caractere 35',\n\t\t36 'caractere 36',\n\t\t37 'caractere 37',\n\t\t38 'caractere 38',\n\t\t39 'caractere 39',\n\t\t40 'caractere 40',\n\t\t41 'caractere 41',\n\t\t42 'caractere 42',\n\t\t43 'caractere 43',\n\t\t44 'caractere 44',\n\t\t45 'caractere 45',\n\t\t46 'caractere 46',\n\t\t47 'caractere 47',\n\t\t48 'caractere 48'\n\t;\n\tMATRIX\n\tSocle      000000000000000000000000000000000000000000000000\n\tAube       000000000010100001000000000001000000000000000000\n\tBrume      0?0000000010000001000000000101000000000000010000\n\tCendre     000000011010000000000000000001000000000000?00000\n\tDune       000000010010000000001000000001000001000000001000\n\tEcume      000000010010000000000001000001000001001000012000\n\tFalaise    000000000000000100100000000002000000000?00000001\n\tGreve      000000000001000000100000000012000020000001100101\n\tHoule      010000000000000000100010000002000000000000000000\n\tIlot       000000000200000000100010000002010000000000100100\n\tJusant     000000000100000000100010000002001000000000100100\n\tKarst      001000000000000010000100001000100000100010000010\n\tLagune     0010?0000000000010?00000010000000000100010000010\n\tMarais     000020000000000010010010000000000000100010000000\n\tNacre      000000100000010010020000000000000000100010000000\n\tOrage      000100100000000010020000000000000000100010000001\n\tPluie      000000?00010000010000000201000000100000010000000\n\tQuartz     0?0000000000002010000000011000000100000010000000\n\tRecif      100001000000000010000000001000000010100210000000\n\tSable      101001000001000000000100001000000000000110000000\n\tTourbe     1000000?1001000010000000001000001000010110000000\n\t;\nEND;\n", "groupe": "canon", "court": "Référence — synthétique 21 × 48", "desc": "Matrice synthétique, 21 × 48. Référence des comparaisons."}, {"id": "A", "fichier": "variante_A.nex", "date": "19/10/2026", "md5": "17ba2d567baa7b9d2d26a422fae3ccdb", "statut": "Variante de test", "note": "Même matrice que la référence, six cellules recodées (caractères 3, 8, 22 et 34). Montre l'effet d'une correction locale sur les arbres.", "txt": "#NEXUS\n\n[ Variante A : six cellules recodees par rapport a la reference. Synthetique. ]\n\nBEGIN TAXA;\n\tDIMENSIONS NTAX=21;\n\tTAXLABELS\n\t\tSocle\n\t\tAube\n\t\tBrume\n\t\tCendre\n\t\tDune\n\t\tEcume\n\t\tFalaise\n\t\tGreve\n\t\tHoule\n\t\tIlot\n\t\tJusant\n\t\tKarst\n\t\tLagune\n\t\tMarais\n\t\tNacre\n\t\tOrage\n\t\tPluie\n\t\tQuartz\n\t\tRecif\n\t\tSable\n\t\tTourbe\n\t;\nEND;\n\nBEGIN CHARACTERS;\n\tDIMENSIONS NCHAR=48;\n\tFORMAT DATATYPE=STANDARD MISSING=? GAP=- SYMBOLS=\"012\";\n\tCHARSTATELABELS\n\t\t1 'caractere 01',\n\t\t2 'caractere 02',\n\t\t3 'caractere 03',\n\t\t4 'caractere 04',\n\t\t5 'caractere 05',\n\t\t6 'caractere 06',\n\t\t7 'caractere 07',\n\t\t8 'caractere 08',\n\t\t9 'caractere 09',\n\t\t10 'caractere 10',\n\t\t11 'caractere 11',\n\t\t12 'caractere 12',\n\t\t13 'caractere 13',\n\t\t14 'caractere 14',\n\t\t15 'caractere 15',\n\t\t16 'caractere 16',\n\t\t17 'caractere 17',\n\t\t18 'caractere 18',\n\t\t19 'caractere 19',\n\t\t20 'caractere 20',\n\t\t21 'caractere 21',\n\t\t22 'caractere 22',\n\t\t23 'caractere 23',\n\t\t24 'caractere 24',\n\t\t25 'caractere 25',\n\t\t26 'caractere 26',\n\t\t27 'caractere 27',\n\t\t28 'caractere 28',\n\t\t29 'caractere 29',\n\t\t30 'caractere 30',\n\t\t31 'caractere 31',\n\t\t32 'caractere 32',\n\t\t33 'caractere 33',\n\t\t34 'caractere 34',\n\t\t35 'caractere 35',\n\t\t36 'caractere 36',\n\t\t37 'caractere 37',\n\t\t38 'caractere 38',\n\t\t39 'caractere 39',\n\t\t40 'caractere 40',\n\t\t41 'caractere 41',\n\t\t42 'caractere 42',\n\t\t43 'caractere 43',\n\t\t44 'caractere 44',\n\t\t45 'caractere 45',\n\t\t46 'caractere 46',\n\t\t47 'caractere 47',\n\t\t48 'caractere 48'\n\t;\n\tMATRIX\n\tSocle      000000000000000000000000000000000000000000000000\n\tAube       000000000010100001000000000001000000000000000000\n\tBrume      0?0000000010000001000000000101000000000000010000\n\tCendre     000000011010000000000000000001000000000000?00000\n\tDune       000000000010000000001000000001000001000000001000\n\tEcume      000000010010000000000001000001000001001000012000\n\tFalaise    000000000000000100100000000002000100000?00000001\n\tGreve      000000000001000000100000000012000020000001100101\n\tHoule      010000000000000000100010000002000000000000000000\n\tIlot       000000010200000000100010000002010000000000100100\n\tJusant     000000000100000000100010000002001000000000100100\n\tKarst      001000000000000010000100001000100000100010000010\n\tLagune     0010?0000000000010?00000010000000000100010000010\n\tMarais     000020000000000010010110000000000000100010000000\n\tNacre      000000100000010010020000000000000000100010000000\n\tOrage      000100100000000010020000000000000000100010000001\n\tPluie      000000?00010000010000100201000000100000010000000\n\tQuartz     0?0000000000002010000000011000000100000010000000\n\tRecif      100001000000000010000000001000000010100210000000\n\tSable      101001000001000000000100001000000000000110000000\n\tTourbe     1010000?1001000010000000001000001000010110000000\n\t;\nEND;\n", "groupe": "test", "court": "A — six cellules recodées", "desc": "Test. Référence avec six cellules modifiées."}, {"id": "SUB24", "fichier": "sous-matrice_24.nex", "date": "19/10/2026", "md5": "7e05ea90e78f0d11947d7ea0ae9c5d1c", "statut": "Sous-matrice de test, dérivée de la référence", "note": "Les 24 premiers caractères de la référence, cellules inchangées. Montre ce que change un retrait de caractères.", "txt": "#NEXUS\n\n[ Sous-matrice : les 24 premiers caracteres de la reference. Synthetique. ]\n\nBEGIN TAXA;\n\tDIMENSIONS NTAX=21;\n\tTAXLABELS\n\t\tSocle\n\t\tAube\n\t\tBrume\n\t\tCendre\n\t\tDune\n\t\tEcume\n\t\tFalaise\n\t\tGreve\n\t\tHoule\n\t\tIlot\n\t\tJusant\n\t\tKarst\n\t\tLagune\n\t\tMarais\n\t\tNacre\n\t\tOrage\n\t\tPluie\n\t\tQuartz\n\t\tRecif\n\t\tSable\n\t\tTourbe\n\t;\nEND;\n\nBEGIN CHARACTERS;\n\tDIMENSIONS NCHAR=24;\n\tFORMAT DATATYPE=STANDARD MISSING=? GAP=- SYMBOLS=\"012\";\n\tCHARSTATELABELS\n\t\t1 'caractere 01',\n\t\t2 'caractere 02',\n\t\t3 'caractere 03',\n\t\t4 'caractere 04',\n\t\t5 'caractere 05',\n\t\t6 'caractere 06',\n\t\t7 'caractere 07',\n\t\t8 'caractere 08',\n\t\t9 'caractere 09',\n\t\t10 'caractere 10',\n\t\t11 'caractere 11',\n\t\t12 'caractere 12',\n\t\t13 'caractere 13',\n\t\t14 'caractere 14',\n\t\t15 'caractere 15',\n\t\t16 'caractere 16',\n\t\t17 'caractere 17',\n\t\t18 'caractere 18',\n\t\t19 'caractere 19',\n\t\t20 'caractere 20',\n\t\t21 'caractere 21',\n\t\t22 'caractere 22',\n\t\t23 'caractere 23',\n\t\t24 'caractere 24'\n\t;\n\tMATRIX\n\tSocle      000000000000000000000000\n\tAube       000000000010100001000000\n\tBrume      0?0000000010000001000000\n\tCendre     000000011010000000000000\n\tDune       000000010010000000001000\n\tEcume      000000010010000000000001\n\tFalaise    000000000000000100100000\n\tGreve      000000000001000000100000\n\tHoule      010000000000000000100010\n\tIlot       000000000200000000100010\n\tJusant     000000000100000000100010\n\tKarst      001000000000000010000100\n\tLagune     0010?0000000000010?00000\n\tMarais     000020000000000010010010\n\tNacre      000000100000010010020000\n\tOrage      000100100000000010020000\n\tPluie      000000?00010000010000000\n\tQuartz     0?0000000000002010000000\n\tRecif      100001000000000010000000\n\tSable      101001000001000000000100\n\tTourbe     1000000?1001000010000000\n\t;\nEND;\n", "groupe": "derivee", "court": "24 premiers caractères", "desc": "Sous-matrice : 24 caractères sur 48, cellules identiques."}];
+const PRE = {"REF": {"taxons": ["Socle", "Aube", "Brume", "Cendre", "Dune", "Ecume", "Falaise", "Greve", "Houle", "Ilot", "Jusant", "Karst", "Lagune", "Marais", "Nacre", "Orage", "Pluie", "Quartz", "Recif", "Sable", "Tourbe"], "nchar": 48, "M": 54, "G": 128, "L": 70, "n": 108, "reps": 51, "strict": [["Aube", "Brume"], ["Dune", "Ecume"], ["Cendre", "Dune", "Ecume"], ["Aube", "Brume", "Cendre", "Dune", "Ecume"], ["Falaise", "Greve", "Houle", "Ilot", "Jusant"], ["Karst", "Lagune"], ["Nacre", "Orage"], ["Karst", "Lagune", "Marais", "Nacre", "Orage"], ["Pluie", "Quartz"], ["Recif", "Sable", "Tourbe"], ["Pluie", "Quartz", "Recif", "Sable", "Tourbe"], ["Karst", "Lagune", "Marais", "Nacre", "Orage", "Pluie", "Quartz", "Recif", "Sable", "Tourbe"]]}, "A": {"taxons": ["Socle", "Aube", "Brume", "Cendre", "Dune", "Ecume", "Falaise", "Greve", "Houle", "Ilot", "Jusant", "Karst", "Lagune", "Marais", "Nacre", "Orage", "Pluie", "Quartz", "Recif", "Sable", "Tourbe"], "nchar": 48, "M": 54, "G": 132, "L": 75, "n": 324, "reps": 51, "strict": [["Aube", "Brume"], ["Aube", "Brume", "Cendre", "Dune", "Ecume"], ["Falaise", "Greve", "Houle", "Ilot", "Jusant"], ["Karst", "Lagune"], ["Nacre", "Orage"], ["Karst", "Lagune", "Marais", "Nacre", "Orage"], ["Pluie", "Quartz"], ["Sable", "Tourbe"], ["Recif", "Sable", "Tourbe"], ["Pluie", "Quartz", "Recif", "Sable", "Tourbe"], ["Karst", "Lagune", "Marais", "Nacre", "Orage", "Pluie", "Quartz", "Recif", "Sable", "Tourbe"]]}, "SUB24": {"taxons": ["Socle", "Aube", "Brume", "Cendre", "Dune", "Ecume", "Falaise", "Greve", "Houle", "Ilot", "Jusant", "Karst", "Lagune", "Marais", "Nacre", "Orage", "Pluie", "Quartz", "Recif", "Sable", "Tourbe"], "nchar": 24, "M": 26, "G": 60, "L": 34, "n": 1000, "reps": 51, "strict": [["Aube", "Brume"], ["Cendre", "Dune", "Ecume"], ["Houle", "Ilot", "Jusant"], ["Falaise", "Greve", "Houle", "Ilot", "Jusant"], ["Nacre", "Orage"]]}};
+let VERSION_COURANTE = null;
+const REF = VERSIONS.find(v => v.id === 'REF');
+const DREF = REF ? B.lireNexus(REF.txt) : null;
+
+function celluleTxt(c){ return typeof c === 'object' ? (c.poly ? '{' : '(') + c.set.join('') + (c.poly ? '}' : ')') : c; }
+/* Alignement d'une version sur la référence : taxons par nom ; caractères par libellé (positionnel),
+   et à défaut par l'alignement qui minimise les différences. */
+function diffAvecRef(V){
+  const R = DREF, rk = new Map(R.taxons.map(t => [B.cleNom(t), t]));
+  const vk = new Set(V.taxons.map(B.cleNom));
+  const manquants = R.taxons.filter(t => !vk.has(B.cleNom(t)));
+  const ajoutes = V.taxons.filter(t => !rk.has(B.cleNom(t)));
+  let map = null;
+  const libR = R.libelles, libV = V.libelles;
+  if(Object.keys(libV).length === V.nchar && Object.keys(libR).length === R.nchar){
+    const pris = new Set(); map = [];
+    for(let i = 1; i <= V.nchar; i++){ let j = null; for(let k = 1; k <= R.nchar; k++) if(!pris.has(k) && libR[k] === libV[i]){ j = k; break; } map.push(j); if(j) pris.add(j); }
+    if(map.some(x => x == null)) map = null;
+  }
+  if(!map){
+    if(V.nchar === R.nchar) map = [...Array(V.nchar).keys()].map(i => i + 1);
+    else { let best = null;
+      for(let d = 1; d <= R.nchar; d++){ const m = [...Array(V.nchar).keys()].map(i => i + 1 < d ? i + 1 : i + 2); let c = 0;
+        for(const t of V.taxons){ if(!rk.has(B.cleNom(t))) continue; const rr = R.cellules.get(rk.get(B.cleNom(t))), vr = V.cellules.get(t);
+          m.forEach((rc, i) => { if(celluleTxt(rr[rc-1]) !== celluleTxt(vr[i])) c++; }); }
+        if(!best || c < best.c) best = {c, m}; }
+      map = best.m; }
+  }
+  const retires = [...Array(R.nchar).keys()].map(i => i + 1).filter(i => !map.includes(i));
+  const cellules = [];
+  for(const t of V.taxons){ if(!rk.has(B.cleNom(t))) continue;
+    const rr = R.cellules.get(rk.get(B.cleNom(t))), vr = V.cellules.get(t);
+    map.forEach((rc, i) => { const a = celluleTxt(rr[rc-1]), b = celluleTxt(vr[i]); if(a !== b) cellules.push({taxon: t, car: rc, ref: a, ver: b}); }); }
+  return {manquants, ajoutes, retires, cellules};
+}
+function afficheVersion(){
+  const box = $('provenance');
+  if(!VERSION_COURANTE){ box.innerHTML = ''; return; }
+  const v = VERSION_COURANTE;
+  let diffHtml = '';
+  if(v.id !== 'REF' && DREF){
+    const d = diffAvecRef(D);
+    const parCar = new Map(); d.cellules.forEach(c => { if(!parCar.has(c.car)) parCar.set(c.car, []); parCar.get(c.car).push(c); });
+    const resume = [...parCar.entries()].sort((a, b) => a[0] - b[0]).map(([car, l]) => {
+      const trans = new Map(); l.forEach(c => { const k = c.ref + ' → ' + c.ver; trans.set(k, (trans.get(k) || 0) + 1); });
+      return `<tr><td>${car}</td><td class="txt">${esc(DREF.libelles[car] || '')}</td><td>${l.length}</td><td class="txt">${[...trans].map(([k, n]) => esc(k) + ' (×' + n + ')').join(' · ')}</td></tr>`; }).join('');
+    const detail = d.cellules.map(c => `<tr><td class="txt">${esc(c.taxon)}</td><td>${c.car}</td><td>${esc(c.ref)}</td><td>${esc(c.ver)}</td></tr>`).join('');
+    diffHtml = `<h3>Différences avec la référence</h3>
+      <div class="etat">${[[d.cellules.length + ' cellule(s) modifiée(s)', d.cellules.length ? 'att' : 'ok'],
+        [d.retires.length ? (d.retires.length > 6 ? d.retires.length + ' caractères retirés (liste ci-dessous)' : 'caractère(s) retiré(s) : ' + d.retires.map(i => i + ' (' + (DREF.libelles[i] || '') + ')').join(', ')) : 'aucun caractère retiré', d.retires.length ? 'att' : ''],
+        [d.manquants.length ? 'taxon(s) absent(s) : ' + d.manquants.join(', ') : 'aucun taxon absent', d.manquants.length ? 'att' : ''],
+        [d.ajoutes.length ? 'taxon(s) ajouté(s) : ' + d.ajoutes.join(', ') : 'aucun taxon ajouté', d.ajoutes.length ? 'att' : '']]
+        .map(([t, c]) => `<span class="puce${c ? ' ' + c : ''}">${esc(t)}</span>`).join('')}</div>
+      ${d.retires.length > 6 ? `<details><summary>Les ${D.nchar} caractères retenus et les ${d.retires.length} retirés</summary><div class="tbl"><table><thead><tr><th>n° d'origine</th><th>libellé</th><th>statut</th></tr></thead><tbody>${[...Array(DREF.nchar).keys()].map(i => i + 1).map(i => `<tr><td>${i}</td><td class="txt">${esc(DREF.libelles[i] || '')}</td><td class="${d.retires.includes(i) ? '' : 'fort'}">${d.retires.includes(i) ? 'retiré' : 'retenu'}</td></tr>`).join('')}</tbody></table></div></details>` : ''}
+      ${resume ? `<div class="tbl"><table><thead><tr><th>car.</th><th>libellé</th><th>cellules</th><th>changements (référence → version)</th></tr></thead><tbody>${resume}</tbody>
+      <caption>Une inversion 0 ↔ 1 sur tous les taxons (repolarisation) ne change ni M, ni G, ni aucune longueur d'arbre : ce n'est pas une correction d'observation, c'est une décision de codage qui n'a d'effet que sur la lecture des états ancestraux.</caption></table></div>
+      <details><summary>Les ${d.cellules.length} cellules, une par une</summary><div class="tbl"><table><thead><tr><th>taxon</th><th>car.</th><th>référence</th><th>version</th></tr></thead><tbody>${detail}</tbody></table></div></details>` : ''}`;
+  }
+  box.innerHTML = `<div class="res ${v.groupe === 'canon' ? 'canon' : 'rouge'}" style="margin-top:12px"><b>${esc(v.statut)}.</b> ${esc(v.note)}</div>
+    <dl class="mesures"><div><dt>fichier</dt><dd style="font-size:.85rem">${esc(v.fichier)}</dd></div>
+    <div><dt>date du fichier</dt><dd style="font-size:.85rem">${esc(v.date)}</dd></div></dl>
+    ${diffHtml}`;
+}
+function choisitVersion(id){
+  const v = VERSIONS.find(x => x.id === id);
+  if(!v){ VERSION_COURANTE = null; afficheVersion(); majPicker(); return; }
+  VERSION_COURANTE = v;
+  const canon = {exclus: new Set(), og: new Set([B.cleNom('Socle')])};
+  chargeNex(v.txt, v.court, canon);
+  majSel(); majPicker();
+}
+
+/* tableau des effets sur les arbres (pré-calculé ; recalculable en direct) */
+function groupesRestreints(strict, communs){
+  const C = new Set(communs.map(B.cleNom)), tous = communs.map(B.cleNom).sort();
+  const out = new Set();
+  for(const g of strict){
+    const s = g.map(B.cleNom).filter(x => C.has(x));
+    if(s.length < 2 || s.length > tous.length - 2) continue;
+    const S = new Set(s), comp = tous.filter(x => !S.has(x));
+    const cote = S.has(tous[0]) ? comp : s.slice().sort();
+    out.add(cote.join('|'));
+  }
+  return out;
+}
+const nomDe = (cle, refTax) => { const m = new Map(refTax.map(t => [B.cleNom(t), t])); return cle.split('|').map(k => m.get(k) || k).join(' + '); };
+function ligneEffet(id, a, r){
+  const communs = a.taxons.filter(t => r.taxons.map(B.cleNom).includes(B.cleNom(t)));
+  const ga = groupesRestreints(a.strict, communs), gr = groupesRestreints(r.strict, communs);
+  const perdus = [...gr].filter(x => !ga.has(x)), gagnes = [...ga].filter(x => !gr.has(x));
+  const CI = a.M / a.L, RI = (a.G - a.L) / (a.G - a.M);
+  const det = (perdus.length || gagnes.length) ? `<details><summary>${perdus.length} perdu(s) · ${gagnes.length} gagné(s)</summary><div class="txt" style="font-size:.8rem">
+      ${perdus.map(x => '− ' + esc(nomDe(x, r.taxons))).join('<br>')}${perdus.length && gagnes.length ? '<br>' : ''}${gagnes.map(x => '+ ' + esc(nomDe(x, a.taxons))).join('<br>')}</div></details>` : 'aucun';
+  return `<tr><td class="txt">${esc(id)}</td><td>${a.taxons.length}</td><td>${a.nchar}</td><td>${a.M} · ${a.G}</td><td class="fort">${a.L}</td>
+    <td>${CI.toFixed(4)}</td><td>${RI.toFixed(4)}</td><td>${a.n >= 1000 ? '≥ 1000 *' : a.n}</td><td>${a.strict.length}${a.n >= 1000 ? ' *' : ''}</td><td class="txt">${id === 'REF' ? '—' : det}</td></tr>`;
+}
+function tableEffets(){
+  const suf = '';
+  const r = PRE['REF' + suf]; if(!r){ $('effets').innerHTML = ''; return; }
+  const sep = t => `<tr><td colspan="10" class="txt" style="background:var(--ardoise);font:600 .74rem var(--d);letter-spacing:.05em;text-transform:uppercase;color:var(--encre-pale)">${t}</td></tr>`;
+  const grp = g => VERSIONS.filter(v => v.groupe === g && PRE[v.id + suf]).map(v => ligneEffet(v.id === 'REF' ? 'REF (référence)' : v.court, PRE[v.id + suf], r)).join('');
+  const rows = sep('Matrice de référence') + grp('canon') + sep('Matrices de test') + grp('test') + sep('Sous-matrices dérivées de la référence') + grp('derivee');
+  $('effets').innerHTML = `<div class="tbl"><table><thead><tr><th>version</th><th>taxons</th><th>car.</th><th>M · G</th><th>L</th><th>CI</th><th>RI</th><th>arbres</th><th>bip. strict</th><th>groupes du consensus strict vs référence</th></tr></thead><tbody>${rows}</tbody>
+    <caption>Pré-calculé avec ce moteur : lacunes = données manquantes, extra-groupe « Socle », addition aléatoire + TBR, arrêt après 50 réplicats sans changement, graine 20260908.
+    Groupes comparés sur les taxons communs aux deux matrices. Les longueurs ne se comparent pas d'une matrice à l'autre quand le nombre de taxons ou de caractères diffère. Le RI d'une sous-matrice monte mécaniquement quand il y a moins de caractères : il ne se compare pas à celui de la référence, seulement à un null de même taille (section 4).
+    * Plafond de 1000 arbres atteint : il existe au moins autant d'arbres les plus parcimonieux, et le consensus strict est calculé sur ces 1000 seulement (il peut être surestimé en résolution). C'est fréquent quand il reste peu de caractères.</caption></table></div>`;
+}
+$('btCompare').onclick = () => {
+  if(!VERSION_COURANTE || VERSION_COURANTE.id === 'REF'){ $('sortieCompare').innerHTML = `<div class="res">Choisissez une version autre que la référence.</div>`; return; }
+  let sel; try{ sel = selection(); }catch(e){ return; }
+  const exclusNoms = D.taxons.filter(t => !sel.taxons.includes(t));
+  if(exclusNoms.length === 0 && D.taxons.length < DREF.taxons.length) {}
+  const opts = {txtRef: REF.txt, exclusNoms, reps: +$('reps').value, stable: +$('stable').value, maxtrees: +$('maxtrees').value, graine: +$('graine').value};
+  lance('compare', opts, 'C', 'btCompare', 'btStopC', 'sortieCompare', (res, s, sec) => {
+    $('sortieCompare').innerHTML = `<div class="tbl"><table><thead><tr><th>version</th><th>taxons</th><th>car.</th><th>M · G</th><th>L</th><th>CI</th><th>RI</th><th>arbres</th><th>bip. strict</th><th>groupes vs référence</th></tr></thead><tbody>
+      ${ligneEffet('REF (référence)', res.ref, res.ref)}${ligneEffet(VERSION_COURANTE.id, res.ver, res.ref)}</tbody>
+      <caption>Même sélection de taxons (par nom), mêmes lacunes, mêmes réglages de recherche pour les deux matrices · ${sec.toFixed(0)} s.</caption></table></div>`;
+  });
+};
+function bandeau(){
+  const v = VERSION_COURANTE;
+  if(!v) return `<div class="bandeau autre">Matrice déposée ou de démonstration — hors bibliothèque</div>`;
+  return v.groupe === 'canon' ? `<div class="bandeau canon">Matrice de référence — ${esc(v.court)}</div>`
+    : `<div class="bandeau test">Matrice de test — ${esc(v.court)} </div>`;
+}
+function majPicker(){
+  document.querySelectorAll('#picker .opt').forEach(b => b.setAttribute('aria-pressed', VERSION_COURANTE && b.dataset.id === VERSION_COURANTE.id ? 'true' : 'false'));
+  $('bandeauSel').innerHTML = bandeau();
+}
+(function(){
+  const groupes = [['canon', 'Matrice de référence'], ['test', 'Matrices de test'], ['derivee', 'Sous-matrices de test, dérivées de la référence']];
+  $('picker').innerHTML = groupes.map(([g, t]) => `<div class="grp ${g}"><div class="grpT">${t}</div><div class="opts">${
+    VERSIONS.filter(v => v.groupe === g).map(v => `<button type="button" class="opt ${g}" data-id="${v.id}" aria-pressed="false" aria-describedby="tip-${v.id}">
+      <span class="badge">${g === 'canon' ? 'référence' : 'test'}</span>${esc(v.court)}
+      <span class="tip" role="tooltip" id="tip-${v.id}">${esc(v.desc)}</span></button>`).join('')}</div></div>`).join('');
+  $('picker').onclick = e => { const b = e.target.closest('.opt'); if(!b) return; $('version').value = b.dataset.id; choisitVersion(b.dataset.id); };
+  const sv = $('version');
+  sv.innerHTML = `<option value="">— fichier déposé ou démonstration —</option>` + VERSIONS.map(v => `<option value="${v.id}">${esc(v.id === 'REF' ? 'Référence — ' + v.fichier : v.id + ' — ' + v.fichier)}</option>`).join('');
+  sv.onchange = () => choisitVersion(sv.value);
+  tableEffets();
+})();
+
+/* état de départ : la matrice de référence si la bibliothèque est présente, sinon la démonstration */
+if(REF){ $('version').value = 'REF'; choisitVersion('REF'); } else $('btDemo').click();
+
+</script>
+</body>
+</html>
