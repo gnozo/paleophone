@@ -1,0 +1,6 @@
+{
+  "modeles": [
+    { "url": "paroi-gravee.glb", "titre": "Paroi gravée (exemple)", "description": "Modèle procédural : une surface rocheuse portant trois incisions peu profondes. En lumière rasante (mode « mobile », lumière basse et latérale), les tracés apparaissent ; de face, ils disparaissent presque." },
+    { "url": "galet-incise.glb", "titre": "Galet incisé (exemple)", "description": "Modèle procédural : un galet portant quelques traits parallèles et un trait oblique sur sa face supérieure." }
+  ]
+}

@@ -1,0 +1,2 @@
+Modèles d'exemple paroi-gravee.glb et galet-incise.glb : générés par programme (outils/make_examples.py).
+Dédiés au domaine public : CC0 1.0 Universel — https://creativecommons.org/publicdomain/zero/1.0/
