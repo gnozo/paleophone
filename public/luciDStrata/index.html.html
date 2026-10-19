@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>LucidStrata</title>
+<!--
+  LucidStrata — moteur v3.7 (19 octobre 2026)
+  Fichier unique, sans dépendance. WebGL2.
+
+  Opérateur (lexique de la suite Paléophone) :
+    sortie = espace⁻¹( recentrage(μ) + Relief · amplitude · Rotation · Nivellement · (espace(entrée) − μ) )
+    espace        RGB, YUV BT.601, YCbCr BT.601, YIQ, CIELAB D65 ; option RVB linéarisé
+    Nivellement   égalisation des variances (ZCA sur covariance ou corrélation) : W = Σ^(−1/2)
+    Rotation      R(t), axe (azimut, élévation) et angle animé (tours par cycle, séquenceur, micro)
+    amplitude     écart-type cible quand relief = 0
+    Relief        0 = nivelé, 1 = relief d'origine ; par fondu  E = I + r·(W⁻¹ − I)  ou géodésique  E = Σ^((r+1)/2)·Wᵀ
+    recentrage    μ_out = (1−m)·μ + m·gris moyen
+  Lignée : le nivellement des variances reprend l'étirement par décorrélation de R. E. Alley (NASA/JPL, 1996).
+  LucidStrata en est une implémentation indépendante, écrite à partir des équations. Aucun code tiers.
+
+  v3   moteur WebGL2, sources image/vidéo/caméra/écran, séquenceur, micro, limiteur, export PNG/WebM
+  v3.1 Baskerville + Inter, couleur des pas, .paleo, audio découplé
+  v3.2 fenêtre détachée · v3.3 rendu direct dans la fenêtre détachée · v3.4 sans aperçu · v3.5 plein écran, relief géodésique
+  v3.6 lexique canonique appliqué ; dossier d'images (boucle, aléatoire, variations) ; journal rejouable ;
+       dossier de session (.zip : sources intactes + session.paleo + LISEZMOI) ; cadrage (zoom, bougé) dans le moteur
+  v3.7 entrée MIDI (apprentissage des contrôleurs, notes = pas suivant) ; plus aucune ressource en ligne
+  Licence : GPL-3.0-or-later.
+-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--w:#fff;--k:#000;--w2:rgba(255,255,255,.45);--w3:rgba(255,255,255,.18);--fs:12.5px;--serif:Baskerville,'Libre Baskerville','Baskerville Old Face','Hoefler Text',Georgia,serif;--sans:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+html,body{height:100%;overflow:hidden;background:var(--k)}
+body{font-family:var(--sans);color:var(--w);font-size:var(--fs);line-height:1.4;display:flex;flex-direction:column}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit;background:transparent}
+button{border:1px solid var(--w);padding:3px 10px;cursor:pointer;white-space:nowrap;line-height:1.3}
+button:hover{text-decoration:underline}
+button.on{background:var(--w);color:var(--k)}
+button:disabled{border-color:var(--w3);color:var(--w2);cursor:default;text-decoration:none}
+select{border:none;border-bottom:1px solid var(--w);padding:1px 0;cursor:pointer}
+select option{background:var(--k);color:var(--w)}
+a{color:var(--w)}
+
+/* ── barre ── */
+#top{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--w);flex-wrap:wrap;flex-shrink:0}
+#top .logo{font-family:var(--serif);font-size:19px;font-weight:700;letter-spacing:.01em;margin-right:6px}
+#top .logo i{font-weight:400;font-size:12px;margin-left:8px;color:var(--w2)}
+.sep{width:1px;height:18px;background:var(--w3)}
+#status{margin-left:auto;color:var(--w2);font-style:italic;font-size:12px;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#top label.file{border:1px solid var(--w);padding:3px 10px;cursor:pointer;position:relative;overflow:hidden}
+#top label.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+button.ico{font-size:15px;line-height:1;padding:2px 8px}
+#cpane:fullscreen{background:#000}
+#cpane:fullscreen .ov,#cpane:fullscreen #phase{display:none}
+
+/* ── corps ── */
+#main{display:flex;flex:1;min-height:0}
+#cpane{flex:1;position:relative;overflow:hidden;background:var(--k);cursor:grab;min-width:0}
+#cpane.grab{cursor:grabbing}
+#cv{position:absolute;left:0;top:0;transform-origin:0 0;image-rendering:auto}
+#drop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none;font-style:italic;font-size:18px;color:var(--w2);padding:30px}
+#drop.hide{display:none}
+#detached{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;font-style:italic;color:var(--w2);font-size:15px;pointer-events:none;padding:30px;background:var(--k)}
+body.detached #detached{display:flex}
+body.detached #cv{visibility:hidden}
+#cpane.over::after{content:"";position:absolute;inset:10px;border:1px dashed var(--w);pointer-events:none}
+.ov{position:absolute;font-size:11px;color:var(--w);background:var(--k);padding:1px 6px;pointer-events:none;white-space:nowrap;border:1px solid var(--w3)}
+#badge{left:8px;top:8px;max-width:70%;overflow:hidden;text-overflow:ellipsis}
+#lim{right:8px;top:8px}
+#rec{left:8px;bottom:8px;display:none}
+#rec.on{display:block}
+#rec::before{content:"●  "}
+#phase{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--w);pointer-events:none}
+
+/* ── panneau ── */
+#panel{width:330px;border-left:1px solid var(--w);overflow-y:auto;overflow-x:hidden;flex-shrink:0;scrollbar-width:thin;scrollbar-color:var(--w2) transparent}
+details{border-bottom:1px solid var(--w3)}
+summary{padding:8px 12px;cursor:pointer;list-style:none;font-weight:500;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";width:10px;font-weight:400}
+details[open] summary::before{content:"–"}
+summary .r{margin-left:auto;font-weight:400;font-size:11px;color:var(--w2);font-style:italic}
+.sec{padding:2px 12px 12px}
+.row{display:flex;align-items:center;gap:8px;margin:7px 0;flex-wrap:wrap}
+.row .lab{min-width:84px;color:var(--w)}
+.row .hint{font-size:11px;color:var(--w2);font-style:italic;flex-basis:100%}
+.seg{display:flex;gap:0}
+.seg button{border-right-width:0;padding:2px 8px;font-size:12px}
+.seg button:last-child{border-right-width:1px}
+
+/* ── curseurs : ligne fine, trait gras à gauche du pointeur ── */
+.sl{display:grid;grid-template-columns:84px 1fr 54px;align-items:center;gap:8px;margin:8px 0}
+.sl .v{text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer;--p:50%}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border:none;background:
+  linear-gradient(to right,var(--w) 0 var(--p),transparent var(--p)) 0 1px/100% 3px no-repeat,
+  linear-gradient(var(--w),var(--w)) 0 2px/100% 1px no-repeat}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:2px;height:15px;margin-top:-5px;background:var(--w);border:none;border-radius:0}
+input[type=range]::-moz-range-track{height:1px;background:var(--w);border:none}
+input[type=range]::-moz-range-progress{height:3px;background:var(--w)}
+input[type=range]::-moz-range-thumb{width:2px;height:15px;background:var(--w);border:none;border-radius:0}
+
+input[type=range].midi-cible{outline:1px dashed var(--w);outline-offset:3px}
+
+/* ── séquenceur ── */
+#steps{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.step{--c:var(--w);display:grid;grid-template-columns:18px 1fr auto;gap:6px;align-items:center;border:1px solid var(--w3);border-left:4px solid var(--c);padding:4px 6px;font-size:12px}
+.step.cur{border-color:var(--w);border-left-color:var(--c)}
+.step .n{font-weight:700;color:var(--c)}
+.step .d{color:var(--w2);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step .d b{color:var(--w);font-weight:400;font-style:normal}
+.step .ctl{display:flex;gap:2px}
+.step .ctl button{padding:0 5px;font-size:11px;border-color:var(--w3)}
+.step .ctl input{width:34px;border:none;border-bottom:1px solid var(--w3);text-align:center;font-size:11px}
+.step .bar{grid-column:1/-1;height:1px;background:var(--w3);position:relative}
+.step .bar i{position:absolute;left:0;top:-1px;height:3px;background:var(--c);width:0}
+
+/* ── vu ── */
+#vu{height:3px;background:var(--w3);position:relative;margin:6px 0}
+#vu i{position:absolute;left:0;top:0;height:100%;background:var(--w);width:0}
+
+/* ── dialogues ── */
+dialog{margin:auto;background:var(--k);color:var(--w);border:1px solid var(--w);padding:0;max-width:min(680px,92vw);max-height:88vh}
+dialog::backdrop{background:rgba(0,0,0,.75)}
+dialog .hd{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--w);font-family:var(--serif);font-weight:700;font-size:17px}
+dialog .hd button{margin-left:auto;border:none;font-size:18px;padding:0 4px}
+dialog .bd{padding:14px 18px;overflow-y:auto;max-height:70vh}
+dialog .bd p{margin:0 0 10px}
+dialog .bd h4{margin:14px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:400;color:var(--w2)}
+dialog .bd code{font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--w3);padding:0 4px}
+kbd{border:1px solid var(--w3);padding:0 5px;font-size:11px;font-family:inherit}
+
+#cpane:fullscreen{cursor:none}
+#pres-hint{position:absolute;left:50%;top:14px;transform:translateX(-50%);font-size:12px;color:var(--w2);background:var(--k);padding:3px 10px;border:1px solid var(--w3);pointer-events:none;opacity:0;transition:opacity .4s}
+#pres-hint.show{opacity:1}
+
+@media (max-width:760px){
+  #main{flex-direction:column}
+  #panel{width:100%;border-left:none;border-top:1px solid var(--w);height:46vh}
+  .row .lab,.sl{grid-template-columns:70px 1fr 50px}
+  input[type=range]{height:28px}
+  input[type=range]::-webkit-slider-thumb{width:3px;height:22px;margin-top:-9px}
+}
+</style>
+</head>
+<body>
+
+<header id="top">
+  <span class="logo">LucidStrata<i>v3.7</i></span>
+  <label class="file">image(s) / vidéo<input type="file" id="fin" accept="image/*,video/*,.paleo" multiple></label>
+  <button id="b-cam">caméra</button>
+  <button id="b-scr">écran</button>
+  <button id="b-stop" disabled>arrêter la source</button>
+  <span class="sep"></span>
+  <button id="b-play" disabled>lecture</button>
+  <button id="b-rec" disabled>enregistrer</button>
+  <button id="b-snap" disabled>image PNG</button>
+  <span class="sep"></span>
+  <button id="b-out" disabled title="détacher l'image dans une fenêtre séparée, pour le projecteur (V)">détacher ↗</button>
+  <button id="b-fs" class="ico" title="plein écran (F)">⛶</button>
+  <button id="b-set">réglages</button>
+  <button id="b-help">aide</button>
+  <span id="status">aucune source</span>
+</header>
+
+<main id="main">
+  <section id="cpane">
+    <canvas id="cv" width="16" height="16"></canvas>
+    <div id="drop">Glisser une image ou une vidéo ici,<br>ou choisir caméra / écran.</div>
+    <div class="ov" id="badge"></div>
+    <div class="ov" id="lim">limiteur</div>
+    <div class="ov" id="rec">enregistrement</div>
+    <div id="phase"></div>
+    <div id="detached">Image détachée.<br>Elle est rendue dans l'autre fenêtre ; la régie reste ici.<br><span style="font-size:12px">Rien de visible ? La fenêtre est peut-être derrière celle-ci, ou bloquée par le navigateur.</span></div>
+    <div id="pres-hint">F ou Échap : quitter le plein écran · V : détacher · espace : lecture</div>
+  </section>
+  <aside id="panel"></aside>
+</main>
+
+<dialog id="dlg-set">
+  <div class="hd">Réglages<button data-close>×</button></div>
+  <div class="bd" id="set-body"></div>
+</dialog>
+
+<dialog id="dlg-help">
+  <div class="hd">LucidStrata<button data-close>×</button></div>
+  <div class="bd">
+    <p><b>Un opérateur, du nivelé au relief.</b> L'image est projetée dans un espace de couleur, <b>nivelée</b> (toutes les variations de couleur ramenées au même niveau, les corrélations entre canaux retirées), puis <b>tournée</b>, <b>amplifiée</b>, et rendue à son <b>relief</b> d'origine dans la proportion choisie.</p>
+    <p>Relief à <b>0</b>, sans rotation : l'image à plat, où les plus faibles variations pèsent autant que les plus fortes. Relief à <b>1</b>, amplitude 1, sans rotation : la photo. Entre les deux, et dans le temps, c'est LucidStrata. Le relief a deux formes : <b>fondu</b> (interpolation pixel à pixel, dont presque tout l'effet se concentre près de 1) et <b>géodésique</b> (covariance de sortie Σ<sup>relief</sup>, régulière en échelle logarithmique) ; elles coïncident aux extrémités.</p>
+    <h4>Sources</h4>
+    <p>Image, dossier d'images, vidéo (fichiers, glisser-déposer), caméra, ou capture d'écran : choisir une fenêtre, par exemple VLC, et l'image s'y transforme en direct. Caméra et écran demandent un contexte sécurisé ; si le navigateur refuse depuis un fichier local, servir le dossier avec <code>python -m http.server</code> et ouvrir <code>http://localhost:8000</code>.</p>
+    <h4>Dossier d'images, variations</h4>
+    <p>Plusieurs images déposées ensemble forment un <b>dossier</b>, joué en <b>boucle</b> ou en ordre <b>aléatoire</b>, chaque image restant N cycles. Les <b>variations</b> tirent, de la graine, un léger zoom, un bougé lent, un écart d'axe et de vitesse différents à chaque passage : aucune reproduction n'est tout à fait la même, et toutes se retrouvent depuis la graine.</p>
+    <h4>Statistiques</h4>
+    <p>Le nivellement dépend de la moyenne et de la covariance de l'image. <b>Figées</b> : calculées une fois, puis conservées quelle que soit la suite (révèle ce qui change d'une image à l'autre). <b>Suivies</b> : recalculées toutes les N images, avec un lissage réglable.</p>
+    <h4>Rotation</h4>
+    <p>Dans l'espace nivelé, la rotation est le seul degré de liberté qui conserve le nivellement. L'axe se règle en azimut et élévation ; l'angle est animé par le mouvement (tours par cycle), le séquenceur et le micro.</p>
+    <h4>Limiteur</h4>
+    <p>Actif par défaut. Il impose une durée minimale à tout déplacement de plus d'un quart de tour (changement de teinte franc), lisse amplitude et relief, et fond en douceur les changements d'espace. À couper seulement en connaissance de cause : les cycles rapides de couleurs saturées sont des stimuli à risque pour les personnes photosensibles.</p>
+    <h4>Session, journal, dossier de session</h4>
+    <p>Tout ce que vous faites est inscrit dans un <b>journal</b> horodaté. « <b>Session .paleo</b> » écrit réglages, pas, journal et matrices effectives (μ, W, W⁻¹, R) dans un fichier <code>.paleo</code>, le format commun des outils Paléophone (JSON lisible). « <b>Dossier de session</b> » écrit une archive <code>.zip</code> contenant les sources telles qu'importées, sans aucun traitement, la session, et un LISEZMOI : tout ce qu'il faut pour reproduire. « <b>Rejouer</b> » relit le journal au rythme où il a été écrit, en boucle si on le souhaite. Rien n'est caché : un résultat se décrit entièrement par ces fichiers.</p>
+    <h4>Image détachée, plein écran</h4>
+    <p><b>Détacher</b> ouvre une seconde fenêtre qui ne contient que l'image ; le moteur y rend directement, et la fenêtre principale n'affiche alors plus l'image : elle n'existe qu'à un seul endroit, la régie reste ici. À glisser sur le projecteur ou le second écran ; double-clic ou <kbd>F</kbd> dans cette fenêtre pour le plein écran. Les touches de la régie y fonctionnent aussi. Fermer la fenêtre rattache l'image.</p>
+    <p><b>⛶</b> (ou <kbd>F</kbd>) passe l'image en plein écran dans la fenêtre principale, sans la régie ; <kbd>Échap</kbd> en sort.</p>
+    <h4>MIDI</h4>
+    <p>Dans les réglages, « activer le MIDI » (Chrome ou Edge sur ordinateur), puis « apprendre » : toucher un curseur, tourner un bouton du contrôleur ; la correspondance est gardée dans le navigateur et dans la session <code>.paleo</code>. Une note jouée fait passer au pas suivant du séquenceur.</p>
+    <h4>Clavier</h4>
+    <p><kbd>espace</kbd> lecture/pause · <kbd>S</kbd> image PNG · <kbd>R</kbd> enregistrer · <kbd>V</kbd> détacher / rattacher · <kbd>F</kbd> plein écran · <kbd>→</kbd> <kbd>←</kbd> image suivante / précédente du dossier · <kbd>0</kbd> remettre le zoom · molette zoom · glisser déplacer</p>
+    <h4>Lignée</h4>
+    <p>Le nivellement des variances reprend la méthode de l'étirement par décorrélation publiée par R. E. Alley, <i>Algorithm Theoretical Basis Document for Decorrelation Stretch</i>, NASA/JPL, 1996. LucidStrata en est une implémentation indépendante, écrite à partir des équations. Paléophone, 2026.</p>
+  </div>
+</dialog>
+
+<script>
+'use strict';
+/* ═══════════════════════ 1. Algèbre ═══════════════════════ */
+const I3=()=>[1,0,0,0,1,0,0,0,1];
+const mmul=(A,B)=>{const C=new Array(9);for(let i=0;i<3;i++)for(let j=0;j<3;j++)C[i*3+j]=A[i*3]*B[j]+A[i*3+1]*B[3+j]+A[i*3+2]*B[6+j];return C};
+const mvec=(A,v)=>[A[0]*v[0]+A[1]*v[1]+A[2]*v[2],A[3]*v[0]+A[4]*v[1]+A[5]*v[2],A[6]*v[0]+A[7]*v[1]+A[8]*v[2]];
+const mT=A=>[A[0],A[3],A[6],A[1],A[4],A[7],A[2],A[5],A[8]];
+const minv=A=>{const[a,b,c,d,e,f,g,h,i]=A;const det=a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g);const r=1/det;
+  return[(e*i-f*h)*r,(c*h-b*i)*r,(b*f-c*e)*r,(f*g-d*i)*r,(a*i-c*g)*r,(c*d-a*f)*r,(d*h-e*g)*r,(b*g-a*h)*r,(a*e-b*d)*r]};
+const colMajor=A=>new Float32Array([A[0],A[3],A[6],A[1],A[4],A[7],A[2],A[5],A[8]]);
+const clamp=(x,a,b)=>x<a?a:x>b?b:x;
+const vnorm=v=>{const n=Math.hypot(v[0],v[1],v[2])||1;return[v[0]/n,v[1]/n,v[2]/n]};
+
+// Valeurs/vecteurs propres d'une matrice symétrique 3×3 (Jacobi cyclique). Colonnes de V = vecteurs propres.
+function eigSym3(S){
+  const A=S.slice(),V=I3();
+  for(let sweep=0;sweep<80;sweep++){
+    if(Math.abs(A[1])+Math.abs(A[2])+Math.abs(A[5])<1e-15)break;
+    for(const[p,q]of[[0,1],[0,2],[1,2]]){
+      const apq=A[p*3+q];if(Math.abs(apq)<1e-300)continue;
+      const th=(A[q*3+q]-A[p*3+p])/(2*apq);
+      const t=(th>=0?1:-1)/(Math.abs(th)+Math.sqrt(th*th+1)),c=1/Math.sqrt(t*t+1),s=t*c;
+      for(let k=0;k<3;k++){const kp=A[k*3+p],kq=A[k*3+q];A[k*3+p]=c*kp-s*kq;A[k*3+q]=s*kp+c*kq}
+      for(let k=0;k<3;k++){const pk=A[p*3+k],qk=A[q*3+k];A[p*3+k]=c*pk-s*qk;A[q*3+k]=s*pk+c*qk}
+      for(let k=0;k<3;k++){const kp=V[k*3+p],kq=V[k*3+q];V[k*3+p]=c*kp-s*kq;V[k*3+q]=s*kp+c*kq}
+    }
+  }
+  return{vals:[A[0],A[4],A[8]],V};
+}
+// Rotation d'axe unitaire a et d'angle t (Rodrigues)
+function rotAA(a,t){const c=Math.cos(t),s=Math.sin(t),k=1-c,[x,y,z]=a;
+  return[c+x*x*k,x*y*k-z*s,x*z*k+y*s, y*x*k+z*s,c+y*y*k,y*z*k-x*s, z*x*k-y*s,z*y*k+x*s,c+z*z*k]}
+// Axe/angle d'une rotation (robuste près de 0 et de π)
+function axisAngle(R){
+  const tr=clamp((R[0]+R[4]+R[8]-1)/2,-1,1),ang=Math.acos(tr);
+  if(ang<1e-9)return{axis:[1,0,0],ang:0};
+  if(ang<Math.PI-1e-4){const s=2*Math.sin(ang);return{axis:[(R[7]-R[5])/s,(R[2]-R[6])/s,(R[3]-R[1])/s],ang}}
+  // près de π : diagonale dominante
+  const d=[R[0],R[4],R[8]],i=d.indexOf(Math.max(...d)),j=(i+1)%3,k=(i+2)%3;
+  const ax=[0,0,0];ax[i]=Math.sqrt(Math.max(0,(R[i*3+i]+1)/2));ax[j]=R[i*3+j]/(2*ax[i]||1);ax[k]=R[i*3+k]/(2*ax[i]||1);
+  return{axis:vnorm(ax),ang};
+}
+// Fait tourner Rcur vers Rtar d'au plus maxAng (géodésique sur SO(3))
+function slerpR(Rcur,Rtar,maxAng){
+  const{axis,ang}=axisAngle(mmul(mT(Rcur),Rtar));
+  if(ang<=maxAng)return Rtar;
+  return mmul(Rcur,rotAA(axis,maxAng));
+}
+const sph=(az,el)=>{const a=az*Math.PI/180,e=el*Math.PI/180;return[Math.cos(e)*Math.cos(a),Math.cos(e)*Math.sin(a),Math.sin(e)]};
+function mulberry(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* ═══════════════════════ 2. Couleur ═══════════════════════ */
+const s2l=c=>c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);
+const l2s=c=>c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055;
+const M_XYZ=[0.4124564,0.3575761,0.1804375, 0.2126729,0.7151522,0.0721750, 0.0193339,0.1191920,0.9503041];
+const M_XYZi=minv(M_XYZ);
+const WP=[0.95047,1.0,1.08883];
+const flab=t=>t>216/24389?Math.cbrt(t):(841/108)*t+4/29;
+const finv=t=>t>6/29?t*t*t:3*(6/29)*(6/29)*(t-4/29);
+function rgb2lab(l){const X=mvec(M_XYZ,l);const fx=flab(X[0]/WP[0]),fy=flab(X[1]/WP[1]),fz=flab(X[2]/WP[2]);
+  return[(116*fy-16)/100,500*(fx-fy)/255+0.5,200*(fy-fz)/255+0.5]}
+function lab2rgb(n){const L=n[0]*100,a=(n[1]-0.5)*255,b=(n[2]-0.5)*255;const fy=(L+16)/116,fx=fy+a/500,fz=fy-b/200;
+  return mvec(M_XYZi,[finv(fx)*WP[0],finv(fy)*WP[1],finv(fz)*WP[2]])}
+const SPACES={
+  rgb:  {label:'RGB',           M:I3()},
+  yuv:  {label:'YUV · BT.601',  M:[.299,.587,.114, -.14713,-.28886,.436, .615,-.51499,-.10001]},
+  ycbcr:{label:'YCbCr · BT.601',M:[.299,.587,.114, -.168736,-.331264,.5, .5,-.418688,-.081312]},
+  yiq:  {label:'YIQ',           M:[.299,.587,.114, .595716,-.274453,-.321263, .211456,-.522591,.311135]},
+  lab:  {label:'CIELAB · D65',  M:null},
+};
+for(const k in SPACES)if(SPACES[k].M)SPACES[k].Mi=minv(SPACES[k].M);
+// Projection d'un pixel sRGB (0..1) dans l'espace de travail
+function toSpace(x,space,lin){
+  const isLab=space==='lab';
+  const xl=(lin||isLab)?[s2l(x[0]),s2l(x[1]),s2l(x[2])]:x;
+  return isLab?rgb2lab(xl):mvec(SPACES[space].M,xl);
+}
+const greyAnchor=(space,lin)=>toSpace([0.5,0.5,0.5],space,lin);
+
+/* ═══════════════════════ 3. Statistiques ═══════════════════════ */
+function stats(px,n,space,lin){ // px: Uint8ClampedArray RGBA, n pixels
+  const S=[0,0,0],SS=[0,0,0,0,0,0];let m=0;
+  for(let i=0;i<n*4;i+=4){
+    const c=toSpace([px[i]/255,px[i+1]/255,px[i+2]/255],space,lin);
+    S[0]+=c[0];S[1]+=c[1];S[2]+=c[2];
+    SS[0]+=c[0]*c[0];SS[1]+=c[0]*c[1];SS[2]+=c[0]*c[2];SS[3]+=c[1]*c[1];SS[4]+=c[1]*c[2];SS[5]+=c[2]*c[2];m++;
+  }
+  if(m<16)return null;
+  const mu=[S[0]/m,S[1]/m,S[2]/m],d=Math.max(1,m-1);
+  const cv=(a,b,s)=>(s-S[a]*S[b]/m)/d;
+  const cov=[cv(0,0,SS[0]),cv(0,1,SS[1]),cv(0,2,SS[2]), cv(0,1,SS[1]),cv(1,1,SS[3]),cv(1,2,SS[4]), cv(0,2,SS[2]),cv(1,2,SS[4]),cv(2,2,SS[5])];
+  return{mu,cov,n:m};
+}
+function zca(cov,useCorr){
+  let W,Winv;const covEig=eigSym3(cov);
+  if(useCorr){
+    const sd=[Math.sqrt(Math.max(cov[0],1e-12)),Math.sqrt(Math.max(cov[4],1e-12)),Math.sqrt(Math.max(cov[8],1e-12))];
+    const corr=cov.map((v,i)=>v/(sd[(i/3)|0]*sd[i%3]));
+    const{vals,V}=eigSym3(corr);const Vt=mT(V);
+    const Lm=vals.map(l=>1/Math.sqrt(Math.max(l,1e-8))),Lp=vals.map(l=>Math.sqrt(Math.max(l,1e-8)));
+    const Wc=mmul(mmul(V,[Lm[0],0,0,0,Lm[1],0,0,0,Lm[2]]),Vt),Wci=mmul(mmul(V,[Lp[0],0,0,0,Lp[1],0,0,0,Lp[2]]),Vt);
+    const D=[sd[0],0,0,0,sd[1],0,0,0,sd[2]],Di=[1/sd[0],0,0,0,1/sd[1],0,0,0,1/sd[2]];
+    W=mmul(Wc,Di);Winv=mmul(D,Wci);
+  }else{
+    const{vals,V}=eigSym3(cov);const Vt=mT(V);
+    const Lm=vals.map(l=>1/Math.sqrt(Math.max(l,1e-8))),Lp=vals.map(l=>Math.sqrt(Math.max(l,1e-8)));
+    W=mmul(mmul(V,[Lm[0],0,0,0,Lm[1],0,0,0,Lm[2]]),Vt);Winv=mmul(mmul(V,[Lp[0],0,0,0,Lp[1],0,0,0,Lp[2]]),Vt);
+  }
+  return{W,Winv,covEig};
+}
+// Σ^a = U Λ^a Uᵀ
+function covPow(eig,a){const L=eig.vals.map(l=>Math.pow(Math.max(l,1e-8),a));return mmul(mmul(eig.V,[L[0],0,0,0,L[1],0,0,0,L[2]]),mT(eig.V))}
+// Relief : par fondu  E = I + r(W⁻¹ − I)  |  géodésique  E = Σ^((r+1)/2) · Wᵀ  (= Σ^(r/2)·Qᵀ, Q = W·Σ^(1/2))
+function reliefMatrix(mode,v,W,Winv,covEig){
+  if(mode==='geodesique')return mmul(covPow(covEig,(v+1)/2),mT(W));
+  return Winv.map((x,i)=>(i%4===0?1:0)+v*(x-(i%4===0?1:0)));
+}
+
+/* ═══════════════════════ 4. WebGL ═══════════════════════ */
+const cv=document.getElementById('cv');
+// Le moteur rend dans un canevas hors écran ; chaque image est remise (sans copie) au canevas affiché :
+// l'aperçu de la régie, et la fenêtre de sortie détachée quand elle existe. Repli : rendu direct dans #cv.
+const GLOPT={preserveDrawingBuffer:false,antialias:false,premultipliedAlpha:false};
+let glCanvas,gl,cv2d=null;
+const offOK=(()=>{try{return 'OffscreenCanvas' in window&&!!new OffscreenCanvas(2,2).getContext('webgl2',GLOPT)}catch(e){return false}})();
+if(offOK){glCanvas=new OffscreenCanvas(16,16);gl=glCanvas.getContext('webgl2',GLOPT);cv2d=cv.getContext('2d')}
+else{glCanvas=cv;gl=cv.getContext('webgl2',GLOPT)}
+if(!gl){document.getElementById('drop').textContent='WebGL2 indisponible dans ce navigateur.';throw new Error('no webgl2')}
+const VS=`#version 300 es
+in vec2 a_p;out vec2 v_uv;void main(){v_uv=a_p*0.5+0.5;gl_Position=vec4(a_p,0.0,1.0);}`;
+const FS=`#version 300 es
+precision highp float;
+uniform sampler2D u_tex;
+uniform mat3 u_XYZ,u_XYZi;
+uniform float u_xfade;uniform int u_split;uniform float u_splitPos;uniform float u_zoom;uniform vec2 u_pan;
+// deux jeux de paramètres : A courant, B précédent (fondu)
+uniform int a_space;uniform bool a_lin;uniform mat3 a_C,a_Ci,a_W,a_E,a_R;uniform vec3 a_mu,a_muo;uniform float a_amplitude;
+uniform int b_space;uniform bool b_lin;uniform mat3 b_C,b_Ci,b_W,b_E,b_R;uniform vec3 b_mu,b_muo;uniform float b_amplitude;
+in vec2 v_uv;out vec4 o;
+vec3 s2l(vec3 c){return mix(c/12.92,pow((c+0.055)/1.055,vec3(2.4)),step(vec3(0.04045),c));}
+vec3 l2s(vec3 c){c=max(c,0.0);return mix(c*12.92,1.055*pow(c,vec3(1.0/2.4))-0.055,step(vec3(0.0031308),c));}
+const vec3 WP=vec3(0.95047,1.0,1.08883);
+float flab(float t){return t>216.0/24389.0?pow(t,1.0/3.0):(841.0/108.0)*t+4.0/29.0;}
+float finv(float t){return t>6.0/29.0?t*t*t:3.0*(6.0/29.0)*(6.0/29.0)*(t-4.0/29.0);}
+vec3 rgb2lab(vec3 l){vec3 X=(u_XYZ*l)/WP;float fx=flab(X.x),fy=flab(X.y),fz=flab(X.z);
+  return vec3((116.0*fy-16.0)/100.0,500.0*(fx-fy)/255.0+0.5,200.0*(fy-fz)/255.0+0.5);}
+vec3 lab2rgb(vec3 n){float L=n.x*100.0,a=(n.y-0.5)*255.0,b=(n.z-0.5)*255.0;float fy=(L+16.0)/116.0,fx=fy+a/500.0,fz=fy-b/200.0;
+  return u_XYZi*(vec3(finv(fx),finv(fy),finv(fz))*WP);}
+vec3 proc(vec3 x,int space,bool lin,mat3 C,mat3 Ci,mat3 W,mat3 E,mat3 R,vec3 mu,vec3 muo,float amplitude){
+  bool L=lin||space==1;
+  vec3 xl=L?s2l(x):x;
+  vec3 c=(space==1)?rgb2lab(xl):C*xl;
+  vec3 z=W*(c-mu);
+  vec3 z2=R*z*amplitude;
+  vec3 cc=muo+E*z2;   // E : matrice de relief, calculée côté CPU (fondu ou géodésique)
+  vec3 y=(space==1)?lab2rgb(cc):Ci*cc;
+  y=clamp(y,0.0,1.0);
+  return L?l2s(y):y;
+}
+void main(){
+  vec2 uv=clamp((v_uv-0.5)/u_zoom+0.5+u_pan,0.0,1.0);
+  vec3 x=texture(u_tex,uv).rgb;
+  if(u_split==1&&v_uv.x<u_splitPos){o=vec4(x,1.0);return;}
+  vec3 ya=proc(x,a_space,a_lin,a_C,a_Ci,a_W,a_E,a_R,a_mu,a_muo,a_amplitude);
+  if(u_xfade>0.001){vec3 yb=proc(x,b_space,b_lin,b_C,b_Ci,b_W,b_E,b_R,b_mu,b_muo,b_amplitude);ya=mix(ya,yb,u_xfade);}
+  if(u_split==1&&abs(v_uv.x-u_splitPos)<0.0015)ya=vec3(1.0);
+  o=vec4(ya,1.0);
+}`;
+function sh(t,s){const h=gl.createShader(t);gl.shaderSource(h,s);gl.compileShader(h);if(!gl.getShaderParameter(h,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(h));return h}
+const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);
+if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(prog));
+gl.useProgram(prog);
+const vao=gl.createVertexArray();gl.bindVertexArray(vao);
+const vbo=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vbo);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const ap=gl.getAttribLocation(prog,'a_p');gl.enableVertexAttribArray(ap);gl.vertexAttribPointer(ap,2,gl.FLOAT,false,0,0);
+const U=new Proxy({},{get:(t,k)=>t[k]??(t[k]=gl.getUniformLocation(prog,k))});
+const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+gl.uniformMatrix3fv(U.u_XYZ,false,colMajor(M_XYZ));gl.uniformMatrix3fv(U.u_XYZi,false,colMajor(M_XYZi));gl.uniform1i(U.u_tex,0);
+function setSet(pfx,P){
+  gl.uniform1i(U[pfx+'space'],P.espace==='lab'?1:0);gl.uniform1i(U[pfx+'lin'],P.lineaire?1:0);
+  const C=P.espace==='lab'?I3():SPACES[P.espace].M,Ci=P.espace==='lab'?I3():SPACES[P.espace].Mi;
+  gl.uniformMatrix3fv(U[pfx+'C'],false,colMajor(C));gl.uniformMatrix3fv(U[pfx+'Ci'],false,colMajor(Ci));
+  gl.uniformMatrix3fv(U[pfx+'W'],false,colMajor(P.W));gl.uniformMatrix3fv(U[pfx+'E'],false,colMajor(P.E));
+  gl.uniformMatrix3fv(U[pfx+'R'],false,colMajor(P.R));
+  gl.uniform3fv(U[pfx+'mu'],P.mu);gl.uniform3fv(U[pfx+'muo'],P.muo);
+  gl.uniform1f(U[pfx+'amplitude'],P.amplitude);
+}
+
+/* ═══════════════════════ 5. État ═══════════════════════ */
+// cfg : paramètres éditables (liés au panneau)
+const cfg={
+  espace:'rgb',lineaire:false,correlation:false,stats:'figees',statsToutesLes:5,lissage:0.6,
+  relief:0,reliefMode:'fondu',amplitude:0.2,recentrage:1,
+  az:45,el:35.26,tours:1,mouvement:'avant',amplitudeMouvement:180,axeAleatoire:false,graine:7,
+  bpm:120,tempsParCycle:4,
+  audioOn:false,aRate:0,aPush:0,
+  comparaison:false,comparaisonPos:0.5,
+  variations:0,
+};
+const lim={actif:true,dureeMin:0.34};                 // limiteur
+const setg={recFps:30,recMbps:12,sampleW:192};        // réglages
+// live : ce qui est effectivement rendu (jeu A) ; prev : jeu B pendant un fondu
+const live={espace:'rgb',lineaire:false,mu:[.5,.5,.5],W:I3(),Winv:I3(),E:I3(),covEig:{vals:[1,1,1],V:I3()},R:I3(),muo:[.5,.5,.5],amplitude:0.2,relief:0,key:''};
+let prev=null,xfade=0;
+let statsCov=null,statsMu=null,statsVersion=0,haveStats=false,statsFor='';
+let playing=false,phaseAcc=0,cycles=0,cycleFrac=0,frameNo=0;
+const seq={on:false,steps:[],idx:0,dir:1,cycDone:0,ordre:'avant'};
+const src={kind:null,el:null,w:0,h:0,ready:false,stream:null,url:null,isVideo:false};
+let rngAxis=null,curAxis=sph(cfg.az,cfg.el);
+// dossier d'images : joué en boucle ou en ordre aléatoire, N cycles par image ; variations tirées de la graine
+const dossier={items:[],idx:0,ordre:'boucle',dureeCycles:4,cycDone:0,passages:0};
+let varyNow={zoom:1,pan0:[0,0],pan1:[0,0],az:0,el:0,tours:1,t0:0,dur:1}; // variation courante (cadrage + écarts), interpolée pendant le passage
+function newVariation(){
+  const v=cfg.variations;if(v<=0){varyNow={zoom:1,pan0:[0,0],pan1:[0,0],az:0,el:0,tours:1,t0:performance.now(),dur:1};return}
+  const r=mulberry(cfg.graine*7919+dossier.passages*104729+dossier.idx*31);
+  const zoom=1+v*0.10*r(),m=(zoom-1)/(2*zoom); // marge disponible pour le bougé sans sortir de l'image
+  const p0=[(r()*2-1)*m,(r()*2-1)*m],p1=[(r()*2-1)*m,(r()*2-1)*m];
+  varyNow={zoom,pan0:p0,pan1:p1,az:(r()*2-1)*20*v,el:(r()*2-1)*12*v,tours:1+(r()*2-1)*0.25*v,t0:performance.now(),dur:Math.max(1,dossier.dureeCycles)*cycleDur()*1000};
+}
+function currentPan(){const k=clamp((performance.now()-varyNow.t0)/varyNow.dur,0,1);return[varyNow.pan0[0]+(varyNow.pan1[0]-varyNow.pan0[0])*k,varyNow.pan0[1]+(varyNow.pan1[1]-varyNow.pan0[1])*k]}
+function loadDossier(files){
+  dossier.items=files.map(f=>({name:f.name,file:f}));dossier.idx=0;dossier.cycDone=0;dossier.passages=0;files.forEach(noteSource);
+  journal('dossier',{n:files.length,noms:files.map(f=>f.name)});
+  showDossierItem(0);renderDossier();if(!playing)togglePlay();
+}
+function showDossierItem(i){
+  if(!dossier.items.length)return;dossier.idx=((i%dossier.items.length)+dossier.items.length)%dossier.items.length;
+  loadImageFile(dossier.items[dossier.idx].file,true);newVariation();dossier.cycDone=0;renderDossier();
+}
+function dossierNext(delta=1){
+  const n=dossier.items.length;if(!n)return;dossier.passages++;
+  if(dossier.ordre==='aleatoire'&&delta===1){const r=mulberry(cfg.graine*131+dossier.passages);let j=Math.floor(r()*n);if(n>1&&j===dossier.idx)j=(j+1)%n;showDossierItem(j)}
+  else showDossierItem(dossier.idx+delta);
+}
+function renderDossier(){
+  const box=$('dossier-box');if(!box)return;
+  if(!dossier.items.length){box.textContent='aucun dossier : déposer plusieurs images ensemble';return}
+  box.innerHTML=`<b>${dossier.idx+1}</b> / ${dossier.items.length} · ${dossier.items[dossier.idx].name} · passage ${dossier.passages+1}`;
+}
+
+/* ═══════════════════════ 6. Sources ═══════════════════════ */
+const $=id=>document.getElementById(id);
+const status=t=>{$('status').textContent=t};
+const sampleCv=document.createElement('canvas'),sctx=sampleCv.getContext('2d',{willReadFrequently:true});
+function clearSource(keepDossier){
+  if(!keepDossier){dossier.items=[];dossier.idx=0;renderDossier()}
+  if(src.stream){src.stream.getTracks().forEach(t=>t.stop());src.stream=null}
+  if(src.el&&src.isVideo){try{src.el.pause();src.el.srcObject=null;src.el.removeAttribute('src');src.el.load()}catch(e){}}
+  if(src.url){URL.revokeObjectURL(src.url);src.url=null}
+  src.kind=null;src.el=null;src.ready=false;src.isVideo=false;haveStats=false;statsCov=null;
+  if(recorder)stopRec();
+  for(const b of['b-stop','b-play','b-rec','b-snap'])$(b).disabled=true;
+  $('drop').classList.remove('hide');$('badge').textContent='';status('aucune source');
+  // la sortie séparée reste ouverte (noir) : la prochaine source y arrivera
+}
+function adoptSize(w,h){
+  const cap=4096,s=Math.min(1,cap/Math.max(w,h));
+  src.w=Math.max(1,Math.round(w*s));src.h=Math.max(1,Math.round(h*s));
+  cv.width=src.w;cv.height=src.h;glCanvas.width=src.w;glCanvas.height=src.h;gl.viewport(0,0,src.w,src.h);
+  if(outCv){outCv.width=src.w;outCv.height=src.h}
+  const sw=setg.sampleW,sh=Math.max(1,Math.round(sw*src.h/src.w));sampleCv.width=sw;sampleCv.height=sh;
+  fitCanvas(true);
+}
+function sourceReady(label){
+  src.ready=true;haveStats=false;statsCov=null;statsMu=null;
+  $('drop').classList.add('hide');$('badge').textContent=label+` · ${src.w}×${src.h}`;status(label);
+  for(const b of['b-stop','b-play','b-rec','b-snap','b-out'])$(b).disabled=false;
+  uploadTexture();recomputeStats(true);
+}
+const sourcesVues=new Map(); // nom → File, telles qu'importées (pour le dossier de session)
+function noteSource(file){if(file&&file.name&&!sourcesVues.has(file.name))sourcesVues.set(file.name,file)}
+function loadImageFile(file,fromDossier){
+  noteSource(file);if(!fromDossier)dossier.items=[];
+  const img=new Image();const url=URL.createObjectURL(file);
+  img.onload=()=>{clearSource(fromDossier);src.kind='image';src.el=img;src.url=url;adoptSize(img.naturalWidth,img.naturalHeight);sourceReady(file.name);journal('source',{genre:'image',nom:file.name})};
+  img.onerror=()=>{URL.revokeObjectURL(url);status('image illisible')};
+  img.src=url;
+}
+function mkVideo(){const v=document.createElement('video');v.muted=true;v.loop=true;v.playsInline=true;v.autoplay=true;return v}
+function loadVideoFile(file){
+  noteSource(file);dossier.items=[];clearSource();const v=mkVideo();const url=URL.createObjectURL(file);
+  v.onloadedmetadata=()=>{src.kind='video';src.el=v;src.url=url;src.isVideo=true;adoptSize(v.videoWidth,v.videoHeight);v.play().catch(()=>{});sourceReady(file.name);journal('source',{genre:'video',nom:file.name});if(!playing)togglePlay()};
+  v.onerror=()=>status('vidéo illisible');
+  v.src=url;
+}
+async function openStream(kind){
+  try{
+    const stream=kind==='cam'
+      ?await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}},audio:false})
+      :await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:30}},audio:false});
+    dossier.items=[];clearSource();const v=mkVideo();v.srcObject=stream;
+    v.onloadedmetadata=()=>{src.kind=kind;src.el=v;src.stream=stream;src.isVideo=true;adoptSize(v.videoWidth,v.videoHeight);v.play().catch(()=>{});
+      sourceReady(kind==='cam'?'caméra':'capture d\'écran');journal('source',{genre:kind});if(!playing)togglePlay()};
+    stream.getVideoTracks()[0].addEventListener('ended',()=>{if(src.stream===stream)clearSource()});
+  }catch(e){status((kind==='cam'?'caméra':'écran')+' refusé(e) : '+(e.message||e.name)+(window.isSecureContext?'':' · contexte non sécurisé'))}
+}
+function uploadTexture(){
+  if(!src.ready)return;
+  gl.bindTexture(gl.TEXTURE_2D,tex);
+  try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src.el)}catch(e){}
+}
+function samplePixels(){
+  if(!src.ready)return null;
+  sctx.imageSmoothingEnabled=false; // sous-échantillonnage ponctuel (ne lisse pas la variance) ; le redimensionnement du canvas remet ce drapeau
+  try{sctx.drawImage(src.el,0,0,sampleCv.width,sampleCv.height)}catch(e){return null}
+  return sctx.getImageData(0,0,sampleCv.width,sampleCv.height);
+}
+
+/* ═══════════════════════ 7. Statistiques → live ═══════════════════════ */
+function recomputeStats(force){
+  const id=samplePixels();if(!id)return false;
+  const st=stats(id.data,id.width*id.height,cfg.espace,cfg.lineaire);if(!st)return false;
+  const a=(cfg.stats==='suivies'&&statsCov&&!force)?cfg.lissage:0;
+  statsCov=statsCov&&a>0?statsCov.map((v,i)=>a*v+(1-a)*st.cov[i]):st.cov;
+  statsMu=statsMu&&a>0?statsMu.map((v,i)=>a*v+(1-a)*st.mu[i]):st.mu;
+  haveStats=true;statsVersion++;statsFor=`${cfg.espace}|${cfg.lineaire}`;return true;
+}
+function discreteKey(){return `${cfg.espace}|${cfg.lineaire}|${cfg.correlation}|${cfg.reliefMode}|${cfg.stats==='figees'?statsVersion:'t'}`}
+function pushDiscrete(){
+  // les statistiques doivent avoir été calculées dans l'espace courant (séquenceur, session, menu)
+  if(src.ready&&statsFor!==`${cfg.espace}|${cfg.lineaire}`)recomputeStats(true);
+  // changement discontinu : on mémorise le jeu rendu comme jeu B et on fond
+  if(!haveStats)return;
+  const k=discreteKey();
+  if(k!==live.key){
+    if(live.key&&lim.actif){prev={...live,W:live.W.slice(),Winv:live.Winv.slice(),E:live.E.slice(),R:live.R.slice(),mu:live.mu.slice(),muo:live.muo.slice()};xfade=1}
+    const{W,Winv,covEig}=zca(statsCov,cfg.correlation);
+    live.espace=cfg.espace;live.lineaire=cfg.lineaire;live.W=W;live.Winv=Winv;live.covEig=covEig;live.mu=statsMu.slice();live.key=k;
+  }else if(cfg.stats==='suivies'){
+    const{W,Winv,covEig}=zca(statsCov,cfg.correlation);live.W=W;live.Winv=Winv;live.covEig=covEig;live.mu=statsMu.slice();
+  }
+  live.E=reliefMatrix(cfg.reliefMode,live.relief,live.W,live.Winv,live.covEig);
+}
+
+/* ═══════════════════════ 8. Boucle ═══════════════════════ */
+const cycleDur=()=>60/cfg.bpm*cfg.tempsParCycle;
+let audioEnv=0,audioCtx=null,analyser=null,audioBuf=null,micStream=null,audioTimer=null;
+// signaux : l'analyse audio tourne dans son propre cycle (90 Hz) et écrit ici ; la boucle de rendu lit la dernière valeur
+const signals={audioEnv:0};
+function lfoAngle(u){ // u en tours accumulés
+  const amp=cfg.amplitudeMouvement*Math.PI/180,tri=1-Math.abs(2*(u-Math.floor(u))-1);
+  switch(cfg.mouvement){
+    case 'avant':return 2*Math.PI*u;
+    case 'arriere':return -2*Math.PI*u;
+    case 'allerRetour':return amp*(2*tri-1);
+    case 'sinus':return amp*Math.sin(2*Math.PI*u);
+  }return 0;
+}
+function onCycle(){
+  cycles++;
+  if(cfg.axeAleatoire){rngAxis=rngAxis||mulberry(cfg.graine);const u=rngAxis(),v=rngAxis();curAxis=sph(u*360,Math.asin(2*v-1)*180/Math.PI)}
+  if(seq.on&&seq.steps.length){seq.cycDone++;if(seq.cycDone>=seq.steps[seq.idx].cycles){seq.cycDone=0;seqNext()}}
+  if(dossier.items.length>1){dossier.cycDone++;if(dossier.cycDone>=dossier.dureeCycles)dossierNext(1)}
+  renderSteps();
+}
+let last=performance.now(),recorder=null,recChunks=[],recT0=0;
+function tick(now){
+  requestAnimationFrame(tick);
+  const dt=Math.min(0.1,(now-last)/1000);last=now;frameNo++;
+  replayTick();
+  audioEnv=signals.audioEnv;$('vu').firstElementChild.style.width=(audioEnv*100)+'%';
+  if(!src.ready){draw();present();return}
+  if(src.isVideo){
+    uploadTexture();
+    if(cfg.stats==='suivies'&&(!haveStats||frameNo%cfg.statsToutesLes===0))recomputeStats(false);
+    else if(!haveStats)recomputeStats(true);
+  }
+  if(playing){
+    const before=Math.floor(phaseAcc);phaseAcc+=dt/cycleDur();
+    if(Math.floor(phaseAcc)>before)onCycle();
+  }
+  cycleFrac=phaseAcc-Math.floor(phaseAcc);$('phase').style.width=(cycleFrac*100)+'%';
+  $('phase').style.background=(seq.on&&seq.steps[seq.idx])?stepColor(seq.steps[seq.idx]):'#fff';
+  pushDiscrete();
+  // cibles
+  const rateMul=1+cfg.aRate*audioEnv*4,amplitudeMul=1+cfg.aPush*audioEnv*2;
+  if(!cfg.axeAleatoire)curAxis=sph(cfg.az+varyNow.az,cfg.el+varyNow.el);
+  const theta=lfoAngle(phaseAcc*cfg.tours*rateMul*varyNow.tours);
+  const Rt=rotAA(curAxis,theta);
+  const anchor=greyAnchor(cfg.espace,cfg.lineaire);
+  const muoT=[0,1,2].map(i=>(1-cfg.recentrage)*live.mu[i]+cfg.recentrage*anchor[i]);
+  const amplitudeT=cfg.amplitude*amplitudeMul,varT=cfg.relief;
+  // limiteur
+  if(lim.actif){
+    const maxAng=(Math.PI/2)*dt/lim.dureeMin;
+    live.R=slerpR(live.R,Rt,maxAng);
+    const k=1-Math.exp(-dt/(0.35*lim.dureeMin));
+    live.amplitude+=(amplitudeT-live.amplitude)*k;live.relief+=(varT-live.relief)*k;
+    live.muo=live.muo.map((v,i)=>v+(muoT[i]-v)*k);
+    xfade=Math.max(0,xfade-dt/lim.dureeMin);
+  }else{live.R=Rt;live.amplitude=amplitudeT;live.relief=varT;live.muo=muoT;xfade=0}
+  live.E=reliefMatrix(cfg.reliefMode,live.relief,live.W,live.Winv,live.covEig);
+  draw();present();
+}
+function present(){ // remet l'image rendue aux canevas affichés
+  if(!cv2d)return;
+  if(!src.ready||!haveStats){cv2d.fillStyle='#000';cv2d.fillRect(0,0,cv.width,cv.height);return}
+  const bmp=glCanvas.transferToImageBitmap();
+  if(outCtx&&outWin&&!outWin.closed){outCtx.transferFromImageBitmap(bmp);return} // sortie détachée : l'image n'existe que là
+  cv2d.drawImage(bmp,0,0);
+}
+function draw(){
+  gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);
+  if(!src.ready||!haveStats)return;
+  setSet('a_',live);
+  if(xfade>0.001&&prev)setSet('b_',prev);
+  gl.uniform1f(U.u_xfade,prev?xfade:0);
+  gl.uniform1i(U.u_split,cfg.comparaison?1:0);gl.uniform1f(U.u_splitPos,cfg.comparaisonPos);
+  const pan=currentPan();gl.uniform1f(U.u_zoom,varyNow.zoom);gl.uniform2f(U.u_pan,pan[0],-pan[1]);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+function togglePlay(){playing=!playing;journal('lecture',{v:playing});$('b-play').textContent=playing?'pause':'lecture';$('b-play').classList.toggle('on',playing)}
+
+/* ═══════════════════════ 9. Audio ═══════════════════════ */
+async function toggleAudio(){
+  if(cfg.audioOn){cfg.audioOn=false;if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null}if(audioTimer){clearInterval(audioTimer);audioTimer=null}signals.audioEnv=0;$('b-audio').classList.remove('on');return}
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();
+    analyser=audioCtx.createAnalyser();analyser.fftSize=1024;audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    audioBuf=new Float32Array(analyser.fftSize);cfg.audioOn=true;$('b-audio').classList.add('on');
+    audioTimer=setInterval(readAudio,1000/90);
+  }catch(e){status('micro refusé : '+(e.message||e.name))}
+}
+function readAudio(){
+  if(!cfg.audioOn||!analyser)return;
+  analyser.getFloatTimeDomainData(audioBuf);let s=0;for(let i=0;i<audioBuf.length;i++)s+=audioBuf[i]*audioBuf[i];
+  const rms=Math.min(1,Math.sqrt(s/audioBuf.length)*4),e=signals.audioEnv;
+  signals.audioEnv=rms>e?e+(rms-e)*0.5:e+(rms-e)*0.08;
+}
+
+/* ═══════════════════════ 10. Séquenceur ═══════════════════════ */
+const STEP_KEYS=['espace','lineaire','correlation','relief','reliefMode','amplitude','recentrage','az','el','tours','mouvement','amplitudeMouvement','axeAleatoire'];
+// couleur d'un pas : angle d'or sur la roue, stable tant que le pas existe (seule touche de couleur de l'interface)
+const stepColor=s=>{if(!s.hue&&s.hue!==0)s.hue=Math.round((seq.steps.indexOf(s)*137.508+20)%360);return `hsl(${s.hue} 75% 62%)`};
+function snapshotStep(){const p={};for(const k of STEP_KEYS)p[k]=cfg[k];return{cycles:4,hue:Math.round((seq.steps.length*137.508+20)%360),p}}
+function applyStep(i){const s=seq.steps[i];if(!s)return;Object.assign(cfg,s.p);syncUI()}
+function seqNext(){
+  const n=seq.steps.length;if(!n)return;
+  if(seq.ordre==='avant')seq.idx=(seq.idx+1)%n;
+  else if(seq.ordre==='allerRetour'){if(n>1){let j=seq.idx+seq.dir;if(j<0||j>=n){seq.dir*=-1;j=seq.idx+seq.dir}seq.idx=clamp(j,0,n-1)}}
+  else{seq.idx=Math.floor((rngAxis||(rngAxis=mulberry(cfg.graine)))()*n)}
+  applyStep(seq.idx);
+}
+function seqStart(){if(!seq.steps.length)return;seq.on=true;seq.idx=clamp(seq.idx,0,seq.steps.length-1);seq.cycDone=0;applyStep(seq.idx);$('b-seq').classList.add('on');renderSteps()}
+function seqStop(){seq.on=false;$('b-seq').classList.remove('on');renderSteps()}
+const MVT={avant:'→',arriere:'←',allerRetour:'↔',sinus:'∿'};
+function stepDesc(s){const p=s.p;return `<b>${SPACES[p.espace].label.split(' ·')[0]}${p.lineaire?'·lin':''}</b> relief ${p.relief.toFixed(2)} · ampl. ${p.amplitude.toFixed(2)} · ${p.tours}t ${MVT[p.mouvement]||''}${p.axeAleatoire?' · axe aléa':''}`}
+function renderSteps(){
+  const box=$('steps');box.innerHTML='';
+  seq.steps.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='step'+(seq.on&&i===seq.idx?' cur':'');d.style.setProperty('--c',stepColor(s));
+    const prog=(seq.on&&i===seq.idx)?((seq.cycDone+cycleFrac)/s.cycles*100):0;
+    d.innerHTML=`<span class="n">${i+1}</span><span class="d">${stepDesc(s)}</span>
+      <span class="ctl"><input type="number" min="1" max="999" value="${s.cycles}" title="cycles"><button title="charger dans les réglages">↵</button><button title="remplacer par les réglages courants">⟲</button><button title="monter">↑</button><button title="supprimer">×</button></span>
+      <span class="bar"><i style="width:${prog}%"></i></span>`;
+    const[inp,bLoad,bUpd,bUp,bDel]=d.querySelectorAll('input,button');
+    inp.onchange=()=>{s.cycles=Math.max(1,parseInt(inp.value)||1)};
+    bLoad.onclick=()=>{Object.assign(cfg,s.p);syncUI();seq.idx=i;seq.cycDone=0;renderSteps()};
+    bUpd.onclick=()=>{s.p=snapshotStep().p;renderSteps()};
+    bUp.onclick=()=>{if(i>0){[seq.steps[i-1],seq.steps[i]]=[seq.steps[i],seq.steps[i-1]];renderSteps()}};
+    bDel.onclick=()=>{seq.steps.splice(i,1);if(seq.idx>=seq.steps.length)seq.idx=0;if(!seq.steps.length)seqStop();renderSteps()};
+    box.appendChild(d);
+  });
+}
+
+/* ═══════════════════════ 11. Export ═══════════════════════ */
+const stamp=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`};
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+function snap(){if(!src.ready)return;journal('png',{});draw();const name=`lucidstrata_${stamp()}.png`;
+  if(glCanvas.convertToBlob)glCanvas.convertToBlob({type:'image/png'}).then(b=>dl(b,name));else cv.toBlob(b=>{if(b)dl(b,name)},'image/png')}
+function startRec(){
+  if(!src.ready||recorder)return;
+  const stream=cv.captureStream(setg.recFps);
+  const mimes=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm','video/mp4'];
+  const mime=mimes.find(m=>window.MediaRecorder&&MediaRecorder.isTypeSupported(m));
+  if(!mime){status('enregistrement non pris en charge');return}
+  recChunks=[];recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:setg.recMbps*1e6});
+  recorder.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data)};
+  recorder.onstop=()=>{const b=new Blob(recChunks,{type:mime});dl(b,`lucidstrata_${stamp()}.${mime.includes('mp4')?'mp4':'webm'}`);recorder=null;$('rec').classList.remove('on');$('b-rec').classList.remove('on');$('b-rec').textContent='enregistrer'};
+  recorder.start(500);recT0=performance.now();$('rec').classList.add('on');$('b-rec').classList.add('on');$('b-rec').textContent='arrêter';
+  (function t(){if(!recorder)return;$('rec').textContent='enregistrement '+Math.floor((performance.now()-recT0)/1000)+' s';setTimeout(t,500)})();
+}
+function stopRec(){if(recorder&&recorder.state!=='inactive')recorder.stop()}
+// .paleo : enveloppe commune de la suite Paléophone (JSON UTF-8). L'enveloppe est partagée, la charge utile est propre à l'outil.
+const PALEO={envelope:1,tool:'lucidstrata',version:'3.7',kind:'lucidstrata/session'};
+const uuid=()=>(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
+let sessionId=uuid(),sessionCreated=new Date().toISOString();
+// Journal : tout ce que la personne fait, horodaté en ms depuis le début de session ; rejouable
+const T0=performance.now();
+const JOURNAL={cfg0:JSON.parse(JSON.stringify(cfg)),lim0:{...lim},evenements:[]};
+let replay=null;
+function journal(type,data){
+  if(replay&&replay.muet)return;
+  const t=Math.round(performance.now()-T0),ev=JOURNAL.evenements,last=ev[ev.length-1];
+  if(type==='set'&&last&&last.type==='set'&&last.k===data.k&&t-last.t<150){last.v=data.v;last.t=t;return} // coalescence d'un curseur en mouvement
+  ev.push({t,type,...data});if(ev.length>20000)ev.splice(0,ev.length-20000);
+  const el=$('journal-n');if(el)el.textContent=ev.length+' événements · '+(t/1000).toFixed(0)+' s';
+}
+function journalReset(){JOURNAL.cfg0=JSON.parse(JSON.stringify(cfg));JOURNAL.lim0={...lim};JOURNAL.evenements.length=0;journal('debut',{})}
+// Rejeu : relit les événements au rythme du journal ; boucle optionnelle
+function replayStart(loop){
+  if(replay)replayStop();
+  const ev=JOURNAL.evenements.slice();if(!ev.length){status('journal vide');return}
+  Object.assign(cfg,JSON.parse(JSON.stringify(JOURNAL.cfg0)));syncUI();
+  replay={ev,i:0,start:performance.now(),loop,muet:true};$('b-replay').classList.add('on');status('rejeu du journal'+(loop?' en boucle':''));
+}
+function replayStop(){replay=null;const b=$('b-replay');if(b)b.classList.remove('on')}
+function replayTick(){
+  if(!replay)return;const now=performance.now()-replay.start;
+  while(replay.i<replay.ev.length&&replay.ev[replay.i].t<=now){
+    const e=replay.ev[replay.i++];
+    if(e.type==='set'){if(e.k in cfg)cfg[e.k]=e.v;else if(e.k in lim)lim[e.k]=e.v;syncUI()}
+    else if(e.type==='reperes'){if(e.v==='nivele')Object.assign(cfg,{relief:0,amplitude:0.2,recentrage:1});else Object.assign(cfg,{relief:1,amplitude:1,recentrage:0,tours:0});syncUI()}
+    else if(e.type==='pas'){if(e.action==='capturer')seq.steps.push(snapshotStep());else if(e.action==='sequence')seq.on?seqStop():seqStart();renderSteps()}
+    else if(e.type==='lecture'){if(playing!==e.v)togglePlay()}
+    else if(e.type==='source'&&e.nom&&dossier.items.length){const j=dossier.items.findIndex(x=>x.name===e.nom);if(j>=0&&j!==dossier.idx)showDossierItem(j)}
+  }
+  if(replay.i>=replay.ev.length){if(replay.loop){replay.i=0;replay.start=performance.now();Object.assign(cfg,JSON.parse(JSON.stringify(JOURNAL.cfg0)));syncUI()}else replayStop()}
+} // id stable de la session : généré à la création, conservé à travers les exports
+function sessionPayload(){
+  return{cfg:{...cfg},limiteur:{...lim},midi:{correspondances:{...MIDI.map}},
+    sequencer:{on:seq.on,ordre:seq.ordre,idx:seq.idx,steps:seq.steps},
+    dossier:{ordre:dossier.ordre,dureeCycles:dossier.dureeCycles,noms:dossier.items.map(x=>x.name)},
+    journal:{cfg0:JOURNAL.cfg0,limiteur0:JOURNAL.lim0,evenements:JOURNAL.evenements},
+    effective:{space:live.espace,lin:live.lineaire,mu:live.mu,W:live.W,Winv:live.Winv,R:live.R,muOut:live.muo,amplitude:live.amplitude,var:live.relief,axis:curAxis,phase:phaseAcc}};
+}
+function paleoJSON(){
+  const name=$('badge').textContent.split(' · ')[0];
+  return JSON.stringify({
+    paleo:PALEO.envelope,kind:PALEO.kind,id:sessionId,tool:{name:PALEO.tool,version:PALEO.version},
+    created:sessionCreated,modified:new Date().toISOString(),title:src.kind?`LucidStrata · ${$('badge').textContent}`:'LucidStrata',notes:'',
+    assets:src.ready?[{role:'source',kind:src.kind,name,uri:(src.kind==='image'||src.kind==='video')?name:null,width:src.w,height:src.h}]:[],
+    payload:sessionPayload()},null,1);
+}
+// Migration des charges utiles antérieures au lexique (v3.1 à v3.5)
+const CFG_MIG={space:'espace',lin:'lineaire',corr:'correlation',statsMode:'stats',statsEvery:'statsToutesLes',smooth:'lissage',varv:'relief',vmode:'reliefMode',push:'amplitude',mix:'recentrage',rate:'tours',mode:'mouvement',amp:'amplitudeMouvement',randAxis:'axeAleatoire',seed:'graine',beats:'tempsParCycle',split:'comparaison',splitPos:'comparaisonPos'};
+const VAL_MIG={stats:{freeze:'figees',track:'suivies'},reliefMode:{geo:'geodesique'},mouvement:{cw:'avant',ccw:'arriere',pp:'allerRetour',sin:'sinus'}};
+const VAL_OK={reliefMode:['fondu','geodesique'],stats:['figees','suivies'],mouvement:['avant','arriere','allerRetour','sinus']}; // toute valeur inconnue retombe sur la première (anciens fichiers)
+const ORDRE_MIG={fwd:'avant',pp:'allerRetour',rnd:'aleatoire'};
+function migrateCfg(c){const o={};for(const k in c){const nk=CFG_MIG[k]||k;let v=c[k];if(VAL_MIG[nk]&&v in VAL_MIG[nk])v=VAL_MIG[nk][v];if(VAL_OK[nk]&&!VAL_OK[nk].includes(v))v=VAL_OK[nk][0];o[nk]=v}return o}
+function migrateLim(l){return{actif:l.actif??l.on??true,dureeMin:l.dureeMin??l.minT??0.34}}
+function migrateStep(st){return{cycles:st.cycles||4,hue:st.hue,p:migrateCfg(st.p||{})}}
+function loadSession(obj){
+  let pl;
+  if(obj&&obj.paleo){
+    if(Number(obj.paleo)>PALEO.envelope)throw new Error(`enveloppe .paleo version ${obj.paleo}, cette version de LucidStrata lit jusqu'à ${PALEO.envelope}`);
+    if(!String(obj.kind||'').startsWith('lucidstrata/'))throw new Error('fichier .paleo d\'un autre outil : '+obj.kind);
+    pl=obj.payload||{};
+    if(obj.id)sessionId=obj.id;else{sessionId=uuid();status('session sans id : un id a été généré')}
+    sessionCreated=obj.created||sessionCreated;
+  }
+  else if(obj&&obj.app==='LucidStrata')pl=obj;           // ancien format (v3.0)
+  else throw new Error('fichier inattendu');
+  Object.assign(cfg,migrateCfg(pl.cfg||{}));Object.assign(lim,migrateLim(pl.limiteur||pl.limiter||{}));
+  if(pl.sequencer){seq.steps=(pl.sequencer.steps||[]).map(migrateStep);seq.ordre=ORDRE_MIG[pl.sequencer.ordre||pl.sequencer.order]||pl.sequencer.ordre||'avant';seq.idx=0;seqStop()}
+  if(pl.dossier){dossier.ordre=pl.dossier.ordre||'boucle';dossier.dureeCycles=pl.dossier.dureeCycles||4;syncUI()}
+  if(pl.journal&&pl.journal.evenements){JOURNAL.cfg0=migrateCfg(pl.journal.cfg0||{});JOURNAL.lim0=migrateLim(pl.journal.limiteur0||{});JOURNAL.evenements.length=0;JOURNAL.evenements.push(...pl.journal.evenements);journal('session',{id:sessionId})}
+  if(pl.midi&&pl.midi.correspondances){MIDI.map={...pl.midi.correspondances};midiSave()}
+  rngAxis=null;syncUI();renderSteps();buildSettings();
+}
+
+// ── Archive .zip sans dépendance (méthode « stockage », sans compression) : dossier de session reproductible
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC_T[(c^u8[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function dosTime(d){return{t:(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),d:((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate()}}
+function zipStore(entries){ // entries : [{name, data:Uint8Array}]
+  const enc=new TextEncoder(),parts=[],central=[];let off=0;const now=dosTime(new Date());
+  const le16=v=>[v&255,(v>>8)&255],le32=v=>[v&255,(v>>8)&255,(v>>16)&255,(v>>>24)&255];
+  for(const e of entries){
+    const name=enc.encode(e.name),crc=crc32(e.data),n=e.data.length;
+    const loc=new Uint8Array([...le32(0x04034b50),...le16(20),...le16(0x0800),...le16(0),...le16(now.t),...le16(now.d),...le32(crc),...le32(n),...le32(n),...le16(name.length),...le16(0),...name]);
+    parts.push(loc,e.data);
+    central.push(new Uint8Array([...le32(0x02014b50),...le16(20),...le16(20),...le16(0x0800),...le16(0),...le16(now.t),...le16(now.d),...le32(crc),...le32(n),...le32(n),...le16(name.length),...le16(0),...le16(0),...le16(0),...le16(0),...le32(0),...le32(off),...name]));
+    off+=loc.length+n;
+  }
+  const cdSize=central.reduce((a,c)=>a+c.length,0);
+  const end=new Uint8Array([...le32(0x06054b50),...le16(0),...le16(0),...le16(entries.length),...le16(entries.length),...le32(cdSize),...le32(off),...le16(0)]);
+  return new Blob([...parts,...central,end],{type:'application/zip'});
+}
+async function exportDossierSession(){
+  const enc=new TextEncoder(),st=stamp(),base=`lucidstrata_session_${st}`;
+  const entries=[];const noms=[];
+  for(const[name,file]of sourcesVues){try{entries.push({name:`${base}/sources/${name}`,data:new Uint8Array(await file.arrayBuffer())});noms.push(name)}catch(e){}}
+  const paleo=paleoJSON();
+  entries.push({name:`${base}/session.paleo`,data:enc.encode(paleo)});
+  const lisezmoi=`LucidStrata — dossier de session
+${new Date().toLocaleString('fr-FR')}
+
+Contenu
+  sources/        les fichiers tels qu'ils ont été importés, sans aucun traitement (${noms.length} fichier${noms.length>1?'s':''})${src.kind==='cam'||src.kind==='scr'?'\n                  (la session a aussi utilisé la caméra ou l\'écran : ces flux ne peuvent pas être joints)':''}
+  session.paleo   la session : réglages, pas du séquenceur, dossier, journal complet des actions, matrices effectives
+
+Reproduire
+  1. ouvrir LucidStrata (lucidstrata_*.html) dans un navigateur récent
+  2. déposer ensemble sur l'image le contenu de sources/ et session.paleo
+  3. « rejouer » (en boucle si souhaité) relit le journal au rythme où il a été écrit ;
+     avec un dossier d'images, « variations » produit des reproductions différentes à chaque passage, toutes retrouvables depuis la graine
+
+Format .paleo : enveloppe commune des outils Paléophone (JSON UTF-8). Session ${sessionId}.
+`;
+  entries.push({name:`${base}/LISEZMOI.txt`,data:enc.encode(lisezmoi)});
+  journal('dossierSession',{fichiers:noms.length});
+  dl(zipStore(entries),`${base}.zip`);
+}
+
+/* ═══════════════════════ 12. Zoom / déplacement ═══════════════════════ */
+const cpane=$('cpane');let view={s:1,x:0,y:0,base:1};
+function fitCanvas(reset){
+  const W=cpane.clientWidth,H=cpane.clientHeight;if(!src.w)return;
+  view.base=Math.min(W/src.w,H/src.h);
+  if(reset){view.s=1;view.x=(W-src.w*view.base)/2;view.y=(H-src.h*view.base)/2}
+  applyView();
+}
+function applyView(){cv.style.transform=`translate(${view.x}px,${view.y}px) scale(${view.base*view.s})`}
+new ResizeObserver(()=>fitCanvas(false)).observe(cpane);
+cpane.addEventListener('wheel',e=>{e.preventDefault();const r=cpane.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  const f=Math.exp(-e.deltaY*0.0015),ns=clamp(view.s*f,0.1,40),k=ns/view.s;view.x=mx-(mx-view.x)*k;view.y=my-(my-view.y)*k;view.s=ns;applyView()},{passive:false});
+let drag=null;
+cpane.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX-view.x,y:e.clientY-view.y};cpane.classList.add('grab');cpane.setPointerCapture(e.pointerId)});
+cpane.addEventListener('pointermove',e=>{if(!drag)return;view.x=e.clientX-drag.x;view.y=e.clientY-drag.y;applyView()});
+cpane.addEventListener('pointerup',()=>{drag=null;cpane.classList.remove('grab')});
+cpane.addEventListener('dblclick',()=>fitCanvas(true));
+// pincement tactile
+let pinch=null;
+cpane.addEventListener('touchstart',e=>{if(e.touches.length===2){const[a,b]=e.touches;pinch={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),s:view.s};drag=null}},{passive:true});
+cpane.addEventListener('touchmove',e=>{if(pinch&&e.touches.length===2){e.preventDefault();const[a,b]=e.touches;const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);view.s=clamp(pinch.s*d/pinch.d,0.1,40);applyView()}},{passive:false});
+cpane.addEventListener('touchend',()=>{pinch=null});
+
+/* ═══════════════════════ 13. Interface ═══════════════════════ */
+const panel=$('panel');const ui={};
+function section(title,right){const d=document.createElement('details');d.open=true;d.innerHTML=`<summary>${title}${right?`<span class="r">${right}</span>`:''}</summary><div class="sec"></div>`;panel.appendChild(d);return d.lastElementChild}
+function slider(parent,key,label,min,max,step,fmt,onchange,obj=cfg){
+  const w=document.createElement('div');w.className='sl';
+  w.innerHTML=`<span class="lab">${label}</span><input type="range" min="${min}" max="${max}" step="${step}"><span class="v"></span>`;
+  const inp=w.children[1],val=w.children[2];inp.dataset.k=key;inp.dataset.o=obj===cfg?'cfg':obj===lim?'lim':'autre';
+  const show=()=>{const v=obj[key];inp.value=v;val.textContent=fmt?fmt(v):v;inp.style.setProperty('--p',((v-min)/(max-min)*100)+'%')};
+  inp.oninput=()=>{obj[key]=parseFloat(inp.value);journal('set',{k:key,v:obj[key]});show();if(onchange)onchange(obj[key])};
+  parent.appendChild(w);ui[key]={show};show();return inp;
+}
+function segmented(parent,key,label,opts,onchange,obj=cfg){
+  const w=document.createElement('div');w.className='row';
+  w.innerHTML=`<span class="lab">${label}</span><span class="seg"></span>`;
+  const seg=w.lastElementChild;
+  const show=()=>{[...seg.children].forEach(b=>b.classList.toggle('on',b.dataset.v===String(obj[key])))};
+  for(const[v,t]of opts){const b=document.createElement('button');b.dataset.v=String(v);b.textContent=t;b.onclick=()=>{obj[key]=v;journal('set',{k:key,v});show();if(onchange)onchange(v)};seg.appendChild(b)}
+  parent.appendChild(w);ui[key]={show};show();
+}
+function toggle(parent,key,label,hint,onchange,obj=cfg){
+  const w=document.createElement('div');w.className='row';
+  w.innerHTML=`<span class="lab">${label}</span><button></button>${hint?`<span class="hint">${hint}</span>`:''}`;
+  const b=w.children[1];const show=()=>{b.textContent=obj[key]?'oui':'non';b.classList.toggle('on',!!obj[key])};
+  b.onclick=()=>{obj[key]=!obj[key];journal('set',{k:key,v:obj[key]});show();if(onchange)onchange(obj[key])};
+  parent.appendChild(w);ui[key]={show};show();
+}
+function button(parent,label,fn,id){const b=document.createElement('button');b.textContent=label;b.onclick=fn;if(id)b.id=id;parent.appendChild(b);return b}
+function row(parent,...els){const w=document.createElement('div');w.className='row';els.forEach(e=>w.appendChild(typeof e==='string'?Object.assign(document.createElement('span'),{className:'lab',textContent:e}):e));parent.appendChild(w);return w}
+function syncUI(){for(const k in ui)ui[k].show()}
+const onStatsChange=()=>{if(src.ready)recomputeStats(true)};
+
+// — Moteur
+{const s=section('Espace et statistiques');
+  const sel=document.createElement('select');for(const k in SPACES)sel.add(new Option(SPACES[k].label,k));
+  sel.onchange=()=>{cfg.espace=sel.value;journal('set',{k:'espace',v:sel.value});onStatsChange()};ui.espace={show:()=>{sel.value=cfg.espace}};
+  row(s,'espace',sel);
+  toggle(s,'lineaire','RVB linéaire','décode le gamma avant tout calcul (CIELAB l\'impose)',onStatsChange);
+  segmented(s,'correlation','matrice',[[false,'covariance'],[true,'corrélation']],onStatsChange);
+  segmented(s,'stats','statistiques',[['figees','figées'],['suivies','suivies']],onStatsChange);
+  slider(s,'statsToutesLes','toutes les',1,60,1,v=>v+' img');
+  slider(s,'lissage','lissage',0,0.98,0.01,v=>v.toFixed(2));
+  const r=row(s,'');button(r,'recalculer maintenant',()=>recomputeStats(true));
+}
+{const s=section('Opérateur','relief · amplitude · recentrage');
+  slider(s,'relief','relief',0,1,0.005,v=>v.toFixed(3));
+  segmented(s,'reliefMode','forme du relief',[['fondu','fondu'],['geodesique','géodésique']]);
+  const hv=document.createElement('div');hv.className='hint';hv.textContent='0 = nivelé (toutes les variances égales), 1 = relief chromatique d\'origine. Fondu : interpolation pixel à pixel, concentrée près de 1. Géodésique : covariance de sortie Σ^relief, régulière en échelle logarithmique.';s.appendChild(hv);
+  slider(s,'amplitude','amplitude',0.02,2,0.005,v=>v.toFixed(3));
+  slider(s,'recentrage','recentrage',0,1,0.01,v=>v.toFixed(2));
+  const r=row(s,'repères');
+  button(r,'nivelé',()=>{Object.assign(cfg,{relief:0,amplitude:0.2,recentrage:1});journal('reperes',{v:'nivele'});syncUI()});
+  button(r,'photo',()=>{Object.assign(cfg,{relief:1,amplitude:1,recentrage:0,tours:0});journal('reperes',{v:'photo'});syncUI()});
+  toggle(s,'comparaison','comparaison','original à gauche, traité à droite');
+  slider(s,'comparaisonPos','séparation',0,1,0.01,v=>Math.round(v*100)+' %');
+}
+{const s=section('Rotation','axe · mouvement');
+  slider(s,'az','azimut',0,360,1,v=>v+'°');
+  slider(s,'el','élévation',-90,90,1,v=>v+'°');
+  toggle(s,'axeAleatoire','axe aléatoire','nouvel axe à chaque cycle, tiré de la graine',()=>{rngAxis=null});
+  slider(s,'graine','graine',1,9999,1,v=>v,()=>{rngAxis=null});
+  segmented(s,'mouvement','mouvement',[['avant','→'],['arriere','←'],['allerRetour','↔'],['sinus','∿']]);
+  slider(s,'tours','tours / cycle',0,8,0.05,v=>v.toFixed(2));
+  slider(s,'amplitudeMouvement','amplitude ↔ ∿',0,360,1,v=>v+'°');
+  slider(s,'bpm','BPM',20,300,1,v=>v);
+  slider(s,'tempsParCycle','temps / cycle',1,32,1,v=>v,()=>{});
+  const r=row(s,'');const info=document.createElement('span');info.className='hint';r.appendChild(info);
+  setInterval(()=>{info.textContent=`cycle ${cycleDur().toFixed(2)} s · cycles joués ${cycles}`},300);
+}
+{const s=section('Séquenceur','cycles par pas');
+  const r=row(s,'');
+  button(r,'+ capturer l\'état',()=>{seq.steps.push(snapshotStep());journal('pas',{action:'capturer'});renderSteps()});
+  button(r,'séquence',()=>{journal('pas',{action:'sequence'});seq.on?seqStop():seqStart()},'b-seq');
+  segmented(s,'ordre','ordre',[['avant','→'],['allerRetour','↔'],['aleatoire','aléa']],null,seq);
+  const box=document.createElement('div');box.id='steps';s.appendChild(box);
+  const h=document.createElement('div');h.className='hint';h.textContent='Chaque pas est un état complet. Le pas courant joue N cycles puis passe au suivant ; le limiteur adoucit la transition.';s.appendChild(h);
+}
+{const s=section('Micro','amplitude → mouvement');
+  const r=row(s,'');button(r,'micro',toggleAudio,'b-audio');
+  const vu=document.createElement('div');vu.id='vu';vu.innerHTML='<i></i>';s.appendChild(vu);
+  slider(s,'aRate','→ vitesse',0,1,0.01,v=>v.toFixed(2));
+  slider(s,'aPush','→ amplitude',0,1,0.01,v=>v.toFixed(2));
+}
+{const s=section('Dossier d\'images','boucle · aléatoire · variations');
+  const box=document.createElement('div');box.id='dossier-box';box.className='hint';s.appendChild(box);
+  segmented(s,'ordre','ordre',[['boucle','boucle'],['aleatoire','aléatoire']],null,dossier);
+  slider(s,'dureeCycles','cycles / image',1,64,1,v=>v,null,dossier);
+  slider(s,'variations','variations',0,1,0.01,v=>v.toFixed(2));
+  const r0=row(s,'');button(r0,'← précédente',()=>dossierNext(-1));button(r0,'suivante →',()=>dossierNext(1));
+  const h0=document.createElement('div');h0.className='hint';h0.textContent='Déposer plusieurs images ensemble. Les variations tirent de la graine un léger zoom, un bougé lent et des écarts d\'axe et de vitesse différents à chaque passage.';s.appendChild(h0);
+  renderDossier();
+}
+{const s=section('Session','.paleo · journal');
+  const j=document.createElement('div');j.className='hint';j.id='journal-n';j.textContent='0 événement';s.appendChild(j);
+  const r=row(s,'');
+  button(r,'session .paleo',()=>dl(new Blob([paleoJSON()],{type:'application/json'}),`lucidstrata_${stamp()}.paleo`));
+  button(r,'dossier de session (.zip)',exportDossierSession);
+  const r2=row(s,'');
+  button(r2,'rejouer',()=>replay?replayStop():replayStart(false),'b-replay');
+  button(r2,'rejouer en boucle',()=>replay?replayStop():replayStart(true));
+  button(r2,'effacer le journal',journalReset);
+  const lab=document.createElement('label');lab.className='file';lab.style.cssText='border:1px solid #fff;padding:3px 10px;cursor:pointer;position:relative;overflow:hidden';lab.innerHTML='importer .paleo<input type="file" accept=".paleo,.json,application/json" style="position:absolute;inset:0;opacity:0">';
+  lab.querySelector('input').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{loadSession(JSON.parse(t));status('session chargée')}catch(err){status('session illisible : '+err.message)}})};
+  r.appendChild(lab);
+  const h=document.createElement('div');h.className='hint';h.textContent='Le dossier de session (.zip) contient les sources telles qu\'importées, sans traitement, la session .paleo (réglages, pas, dossier, journal complet) et un LISEZMOI. Tout ce qu\'il faut pour reproduire, en boucle ou avec variations.';s.appendChild(h);
+}
+
+// — Réglages
+function buildSettings(){
+  const b=$('set-body');b.innerHTML='';
+  const s1=document.createElement('div');b.appendChild(s1);
+  const h=document.createElement('h4');h.textContent='Limiteur';s1.appendChild(h);
+  toggle(s1,'actif','limiteur','durée minimale pour tout déplacement de plus d\'un quart de tour ; lissage de l\'amplitude, du relief et des changements d\'espace',v=>{$('lim').style.display=v?'block':'none'},lim);
+  slider(s1,'dureeMin','durée min. (¼ tour)',0.1,3,0.01,v=>v.toFixed(2)+' s',null,lim);
+  const h2=document.createElement('h4');h2.textContent='Enregistrement et calcul';s1.appendChild(h2);
+  slider(s1,'recFps','images / s',10,60,1,v=>v,null,setg);
+  slider(s1,'recMbps','débit',2,40,1,v=>v+' Mb/s',null,setg);
+  slider(s1,'sampleW','échantillon stats',64,512,16,v=>v+' px',()=>{if(src.w)adoptSize(src.w,src.h)},setg);
+  const h3=document.createElement('h4');h3.textContent='MIDI';s1.appendChild(h3);
+  const rm=document.createElement('div');rm.className='row';s1.appendChild(rm);
+  button(rm,MIDI.access?'MIDI actif':'activer le MIDI',midiEnable,'b-midi');
+  button(rm,MIDI.learn?'apprentissage…':'apprendre',()=>{MIDI.learn=!MIDI.learn;MIDI.target=null;document.querySelectorAll('.sl input.midi-cible').forEach(i=>i.classList.remove('midi-cible'));buildSettings();status(MIDI.learn?'MIDI : toucher un curseur, puis tourner un bouton du contrôleur':'MIDI : apprentissage terminé')},'b-midi-learn');
+  button(rm,'tout effacer',()=>{MIDI.map={};midiSave();buildSettings()});
+  const lst=document.createElement('div');lst.className='hint';lst.style.fontStyle='normal';s1.appendChild(lst);
+  const keys=Object.keys(MIDI.map);
+  lst.innerHTML=(MIDI.inputs.length?'Entrées : '+MIDI.inputs.join(', ')+'<br>':'')+(keys.length?keys.map(k=>`CC ${k.split(':')[1]} (canal ${+k.split(':')[0]+1}) → ${MIDI.map[k].k}`).join('<br>'):'Aucune correspondance. Une note jouée fait passer au pas suivant du séquenceur.');
+}
+// — MIDI : apprentissage des contrôleurs (CC → curseur), notes → pas suivant
+const MIDI={access:null,inputs:[],map:{},learn:false,target:null};
+try{MIDI.map=JSON.parse(localStorage.getItem('lucidstrata.midi')||'{}')}catch(e){MIDI.map={}}
+function midiSave(){try{localStorage.setItem('lucidstrata.midi',JSON.stringify(MIDI.map))}catch(e){}}
+function midiEnable(){
+  if(!navigator.requestMIDIAccess){status('MIDI non disponible dans ce navigateur (Chrome ou Edge sur ordinateur)');return}
+  navigator.requestMIDIAccess().then(acc=>{MIDI.access=acc;const bind=()=>{MIDI.inputs=[];acc.inputs.forEach(i=>{i.onmidimessage=midiMessage;MIDI.inputs.push(i.name)});buildSettings()};bind();acc.onstatechange=bind;status(MIDI.inputs.length?'MIDI : '+MIDI.inputs.join(', '):'MIDI actif, aucun contrôleur branché');journal('midi',{entrees:MIDI.inputs})}).catch(err=>status('MIDI refusé : '+err.message));
+}
+function midiMessage(e){
+  const[st,d1,d2]=e.data;const type=st&0xf0,ch=st&0x0f;
+  if(type===0x90&&d2>0){if(seq.steps.length){seqNext();renderSteps()}return}
+  if(type!==0xb0)return;
+  const id=ch+':'+d1;
+  if(MIDI.learn&&MIDI.target){MIDI.map[id]={k:MIDI.target.dataset.k,o:MIDI.target.dataset.o};MIDI.target.classList.remove('midi-cible');MIDI.target=null;midiSave();buildSettings();status(`MIDI : CC ${d1} → ${MIDI.map[id].k}`);return}
+  const m=MIDI.map[id];if(!m)return;
+  const inp=document.querySelector(`.sl input[data-k="${m.k}"][data-o="${m.o}"]`);if(!inp)return;
+  const lo=+inp.min,hi=+inp.max,stp=+inp.step||0;let v=lo+(d2/127)*(hi-lo);if(stp)v=Math.round(v/stp)*stp;
+  inp.value=v;inp.oninput();
+}
+document.addEventListener('pointerdown',e=>{if(!MIDI.learn)return;const i=e.target.closest&&e.target.closest('.sl input[type=range]');if(!i)return;document.querySelectorAll('.sl input.midi-cible').forEach(x=>x.classList.remove('midi-cible'));i.classList.add('midi-cible');MIDI.target=i;status('MIDI : tourner un bouton pour « '+i.dataset.k+' »')},true);
+buildSettings();
+
+// — Barre
+$('fin').onchange=e=>{handleFiles([...e.target.files]);e.target.value=''};
+function handleFiles(files){
+  const imgs=files.filter(f=>f.type.startsWith('image/')),vids=files.filter(f=>f.type.startsWith('video/')),sess=files.filter(f=>/\.(paleo|json)$/i.test(f.name));
+  const other=files.filter(f=>!imgs.includes(f)&&!vids.includes(f)&&!sess.includes(f));
+  if(imgs.length>1)loadDossier(imgs);else if(imgs.length===1)loadImageFile(imgs[0]);else if(vids.length)loadVideoFile(vids[0]);
+  for(const f of sess)f.text().then(t=>{try{loadSession(JSON.parse(t));status('session chargée : '+f.name)}catch(err){status('session illisible : '+err.message)}});
+  if(other.length)status('format non reconnu : '+(other[0].type||other[0].name));
+}
+$('b-cam').onclick=()=>openStream('cam');$('b-scr').onclick=()=>openStream('scr');
+$('b-stop').onclick=clearSource;$('b-play').onclick=togglePlay;$('b-snap').onclick=snap;
+$('b-rec').onclick=()=>recorder?stopRec():startRec();
+$('b-set').onclick=()=>$('dlg-set').showModal();$('b-help').onclick=()=>$('dlg-help').showModal();
+document.querySelectorAll('dialog [data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
+document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
+['dragenter','dragover'].forEach(ev=>cpane.addEventListener(ev,e=>{e.preventDefault();cpane.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>cpane.addEventListener(ev,e=>{e.preventDefault();cpane.classList.remove('over')}));
+cpane.addEventListener('drop',e=>{handleFiles([...e.dataTransfer.files])});
+function handleKey(e){
+  if(e.target&&e.target.matches&&e.target.matches('input,select,textarea'))return;
+  if(document.querySelector('dialog[open]'))return;
+  const k=e.key.toLowerCase();
+  if(e.code==='Space'){e.preventDefault();if(src.ready)togglePlay()}
+  else if(k==='s')snap();
+  else if(k==='r'){recorder?stopRec():startRec()}
+  else if(k==='0')fitCanvas(true);
+  else if(k==='v'){outWin&&!outWin.closed?closeOutput():openOutput()}
+  else if(k==='f'){if(e.view===window)fullscreen(cpane)}
+  else if(e.key==='ArrowRight'){dossierNext(1)}
+  else if(e.key==='ArrowLeft'){dossierNext(-1)}
+}
+window.addEventListener('keydown',handleKey);
+
+/* ═══════════════════════ 14. Sortie séparée et présentation ═══════════════════════ */
+let outWin=null,outCv=null,outCtx=null,presTimer=null;
+function openOutput(){
+  if(!src.ready){status('ouvrir une source d\'abord');return}
+  if(!offOK){status('sortie détachée indisponible : ce navigateur ne rend pas hors écran');return}
+  if(outWin&&!outWin.closed){outWin.focus();return}
+  outWin=window.open('','lucidstrata_sortie','popup=yes,width=960,height=540,left=80,top=80,menubar=no,toolbar=no,location=no,status=no,resizable=yes');
+  if(!outWin||outWin.closed){outWin=null;status('fenêtre bloquée : autoriser les fenêtres surgissantes pour cette page (icône dans la barre d\'adresse), puis réessayer');return}
+  try{outWin.focus()}catch(e){}
+  const d=outWin.document;
+  d.open();d.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>LucidStrata · sortie</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden;cursor:none}canvas{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+#h{position:fixed;left:50%;top:14px;transform:translateX(-50%);font:12px Inter,system-ui,sans-serif;color:rgba(255,255,255,.5);background:#000;border:1px solid rgba(255,255,255,.18);padding:3px 10px;transition:opacity .5s}</style></head>
+<body><canvas></canvas><div id="h">double-clic ou F : plein écran · les touches de la régie fonctionnent ici</div></body></html>`);d.close();
+  outCv=d.querySelector('canvas');outCv.width=src.w;outCv.height=src.h;outCtx=outCv.getContext('bitmaprenderer');
+  const hint=d.getElementById('h');setTimeout(()=>{hint.style.opacity='0'},4000);
+  d.addEventListener('dblclick',()=>fullscreen(d.documentElement,outWin));
+  d.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='f'){e.preventDefault();fullscreen(d.documentElement,outWin);return}handleKey(e)});
+  outWin.addEventListener('pagehide',()=>{if(outWin&&outWin.closed!==false)return;setTimeout(()=>{if(!outWin||outWin.closed){outWin=null;$('b-out').classList.remove('on')}},200)});
+  outWin.addEventListener('unload',()=>setTimeout(()=>{if(!outWin||outWin.closed)closeOutput()},200));
+  if(cv2d){cv2d.fillStyle='#000';cv2d.fillRect(0,0,cv.width,cv.height)} // la régie ne garde pas la dernière image
+  $('b-out').classList.add('on');$('b-out').textContent='rattacher ↙';document.body.classList.add('detached');status('image détachée : si aucune fenêtre n\'est visible, elle est peut-être derrière celle-ci');
+}
+function closeOutput(){if(outWin&&!outWin.closed)outWin.close();outWin=null;outCv=null;outCtx=null;$('b-out').classList.remove('on');$('b-out').textContent='détacher ↗';document.body.classList.remove('detached');status(src.ready?$('badge').textContent:'aucune source')}
+window.addEventListener('beforeunload',()=>{if(outWin&&!outWin.closed)outWin.close()});
+function fullscreen(el,win=window){
+  const doc=win.document;
+  if(doc.fullscreenElement){doc.exitFullscreen();return}
+  (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+}
+function showHint(ms){const h=$('pres-hint');h.classList.add('show');clearTimeout(presTimer);presTimer=setTimeout(()=>h.classList.remove('show'),ms)}
+cpane.addEventListener('pointermove',()=>{if(document.fullscreenElement===cpane)showHint(1500)});
+$('b-out').onclick=()=>{outWin&&!outWin.closed?closeOutput():openOutput()};
+$('b-fs').onclick=()=>fullscreen(cpane);
+document.addEventListener('fullscreenchange',()=>{const fs=document.fullscreenElement===cpane;$('b-fs').classList.toggle('on',fs);setTimeout(()=>fitCanvas(true),50);if(fs)showHint(3500)});
+if(!window.isSecureContext){$('b-cam').title=$('b-scr').title='contexte non sécurisé : servir en http://localhost'}
+
+// — accès test / scriptable
+// Destinations modulables (table pour pp-signal) : la classe décide du garde-fou (chroma → limiteur ; time → aucun)
+const DESTINATIONS=[
+  {name:'relief',range:[0,1],unit:'',class:'chroma'},
+  {name:'amplitude',range:[0.02,2],unit:'σ',class:'chroma'},
+  {name:'recentrage',range:[0,1],unit:'',class:'chroma'},
+  {name:'axe.az',range:[0,360],unit:'deg',class:'chroma'},
+  {name:'axe.el',range:[-90,90],unit:'deg',class:'chroma'},
+  {name:'angle',range:null,unit:'rad',class:'chroma'},
+  {name:'tours',range:[0,8],unit:'tours/cycle',class:'time'},
+  {name:'bpm',range:[20,300],unit:'bpm',class:'time'},
+  {name:'comparaisonPos',range:[0,1],unit:'',class:'geometry'},
+];
+window.LS={cfg,lim,live,seq,signals,DESTINATIONS,JOURNAL,journal,dossier,loadDossier,dossierNext,replayStart,replayStop,get replay(){return replay},zipStore,crc32,exportDossierSession,paleoJSON,loadSession,openOutput,closeOutput,get outWin(){return outWin},SPACES,toSpace,greyAnchor,stats,zca,eigSym3,rotAA,slerpR,axisAngle,
+  loadImageElement(img,label){clearSource();src.kind='image';src.el=img;adoptSize(img.naturalWidth||img.width,img.naturalHeight||img.height);sourceReady(label||'test');newVariation()},
+  get varyNow(){return varyNow},newVariation,
+  recomputeStats:()=>recomputeStats(true),pushDiscrete,draw,
+  renderNow(){pushDiscrete();const anchor=greyAnchor(cfg.espace,cfg.lineaire);live.muo=[0,1,2].map(i=>(1-cfg.recentrage)*live.mu[i]+cfg.recentrage*anchor[i]);live.amplitude=cfg.amplitude;live.relief=cfg.relief;live.E=reliefMatrix(cfg.reliefMode,live.relief,live.W,live.Winv,live.covEig);live.R=rotAA(sph(cfg.az,cfg.el),0);xfade=0;draw()},
+  reliefMatrix,covPow,
+  setR(R){live.R=R;xfade=0;draw()},
+  readPixels(){draw();const w=glCanvas.width,h=glCanvas.height,b=new Uint8Array(w*h*4);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,b);return{w,h,data:b}},
+  offOK,get outCv(){return outCv},
+  state:()=>({live,statsMu,statsCov,haveStats,src:{w:src.w,h:src.h,ready:src.ready}})};
+
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
