@@ -1,2 +1,5 @@
 Modèles d'exemple paroi-gravee.glb et galet-incise.glb : générés par programme (outils/make_examples.py).
 Dédiés au domaine public : CC0 1.0 Universel — https://creativecommons.org/publicdomain/zero/1.0/
+
+tectiforme.glb : relevé photogrammétrique d'un signe tectiforme, grotte de Bernifal (Dordogne), Benjamin Efrati, mars 2026.
+Licence CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/ — attribution : « Benjamin Efrati / Paléophone ».

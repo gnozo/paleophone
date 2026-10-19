@@ -524,10 +524,11 @@ sL.insertAdjacentHTML('beforeend', '<p class="hint">X, Y, Z en rayons du modèle
 
 const sS = section('Session');
 const rS = document.createElement('div'); rS.className = 'row';
-const bExp = document.createElement('button'); bExp.textContent = 'session .paleo'; bExp.onclick = exportPaleo;
+const bExp = document.createElement('button'); bExp.textContent = 'enregistrer .paleo'; bExp.onclick = exportPaleo;
 const bPng = document.createElement('button'); bPng.textContent = 'image PNG'; bPng.onclick = () => { const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = `eidolon_${Date.now()}.png`; a.click(); };
-rS.append(bExp, bPng); sS.appendChild(rS);
-sS.insertAdjacentHTML('beforeend', '<p class="hint">Rouvrir un .paleo : bouton « modèles .glb / session » ou glisser-déposer.</p>');
+const bOpen = document.createElement('button'); bOpen.textContent = 'ouvrir .paleo'; bOpen.onclick = () => $('#fin').click();
+rS.append(bOpen, bExp, bPng); sS.appendChild(rS);
+sS.insertAdjacentHTML('beforeend', '<p class="hint">« Ouvrir » accepte aussi les .glb ; un .paleo peut être glissé sur l\'image.</p>');
 
 /* ── en-tête ── */
 document.querySelectorAll('#seg-mode button').forEach(b => b.onclick = () => setMode(b.dataset.m));
