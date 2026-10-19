@@ -36,7 +36,7 @@ export default function Manifeste() {
             C'est un espace éditorial coopératif, modulaire et vivant.
           </p>
           <hr />
-          <p style={{ fontSize: '13px', color: '#999', lineHeight: '1.9' }}>
+          <p className="caption" style={{ lineHeight: '1.9' }}>
             Comité d'honneur ·{' '}
             Charles Cros (1842–1888) · Mario Amehou (1986–2024) ·
             Daphne Oram (1925–2003) · Georges Perec (1936–1982) ·
@@ -70,7 +70,7 @@ export default function Manifeste() {
             It is a cooperative, modular, and living editorial space.
           </p>
           <hr />
-          <p style={{ fontSize: '13px', color: '#999', lineHeight: '1.9' }}>
+          <p className="caption" style={{ lineHeight: '1.9' }}>
             Honorary committee ·{' '}
             Charles Cros (1842–1888) · Mario Amehou (1986–2024) ·
             Daphne Oram (1925–2003) · Georges Perec (1936–1982) ·

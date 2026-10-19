@@ -7,26 +7,40 @@ export default function Infos() {
   const fr = locale === 'fr'
 
   const items = [
-    { slug: 'apropos', fr: 'À propos', en: 'About' },
-    { slug: 'association', fr: 'Association', en: 'Association' },
-    { slug: 'contact', fr: 'Contact', en: 'Contact' },
-    { slug: 'archive', fr: 'Archive', en: 'Archive' },
+    { slug: 'apropos',     fr: 'À propos',     en: 'About' },
+    { slug: 'association', fr: 'Association',  en: 'Association' },
+    { slug: 'contact',     fr: 'Contact',      en: 'Contact' },
+    { slug: 'archive',     fr: 'Archive',      en: 'Archive' },
   ]
 
   return (
     <Layout>
       <h2>Infos</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginTop: '20px' }}>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: '18px',
+        marginTop: '28px',
+      }}>
         {items.map(item => (
           <div key={item.slug}>
-            <Link href={`/infos/${item.slug}`}>{fr ? item.fr : item.en}</Link>
+            <Link href={`/infos/${item.slug}`} style={{
+              fontFamily: "'Unbounded', sans-serif",
+              fontSize: '16px',
+              fontWeight: 600,
+              color: 'var(--cyan)',
+              borderBottom: 'none',
+            }}>
+              {fr ? item.fr : item.en}
+            </Link>
           </div>
         ))}
       </div>
 
       <hr />
 
-      <p style={{ fontSize: '14px' }}>
+      <p style={{ fontSize: '15px' }}>
         {fr
           ? <>Artistes — pour publier sur Paléophone et rejoindre l'association : <Link href="/publier">Publier sur Paléophone</Link></>
           : <>Artists — to publish on Paléophone and join the association: <Link href="/publier">Publish on Paléophone</Link></>
@@ -35,7 +49,7 @@ export default function Infos() {
 
       <hr />
 
-      <p style={{ fontSize: '13px', color: '#999', lineHeight: '2.1' }}>
+      <p className="mono-dim" style={{ lineHeight: '2.1' }}>
         <a href="https://paleophonerecords.bandcamp.com" target="_blank" rel="noopener noreferrer">Bandcamp</a>
         {' · '}
         <a href="https://alpha.subvert.fm/@paleophone" target="_blank" rel="noopener noreferrer">Subvert</a>

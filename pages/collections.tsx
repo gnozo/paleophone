@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 const collections = [
   {
     name: 'Folclorum Imaginarium',
+    color: 'var(--gold)',
     fr: {
       subtitle: 'Folklore imaginaire',
       desc: `Musiques électro-acoustiques puisant dans les répertoires traditionnels du monde entier — non pour les reproduire, mais pour les déplacer, les réactiver, les faire muter. Field recordings, instruments acoustiques, traitements électroniques. Une archéologie sonore tournée vers ce qui n'a pas encore eu lieu.`,
@@ -15,6 +16,7 @@ const collections = [
   },
   {
     name: 'Ars Moriendi',
+    color: 'var(--hot)',
     fr: {
       subtitle: "L'art de mourir",
       desc: `Musiques radicales, intransigeantes. Noise, punk, industriel, post-punk, expérimental abrasif. L'héritage du "& no future" comme posture esthétique, non comme nostalgie. Des œuvres qui refusent le confort d'écoute sans refuser la forme.`,
@@ -26,6 +28,7 @@ const collections = [
   },
   {
     name: 'Popinator Experrectus',
+    color: 'var(--lime)',
     fr: {
       subtitle: 'Client de taverne réveillé',
       desc: `Musiques électroniques contemporaines pour dancefloor et casques. Acid, techno, footwork, UK bass, club mutations. Mais aussi des formes plus intimes — bedroom, ambient dancefloor, électronique nocturne. Le code pop déplacé : reconnaissable, mais décalé.`,
@@ -37,6 +40,7 @@ const collections = [
   },
   {
     name: 'Symphonica Electronica',
+    color: 'var(--electric)',
     fr: {
       subtitle: 'Musique symphonique électronique',
       desc: `Le patrimoine musical occidental rencontré, parasité, réinterprété par les outils électroniques. Reprises radicales, collisions de registres, réorchestrations improbables. Du baroque en synthèse modulaire au classique en hardbass — l'électronique comme instrument de lecture critique du canon.`,
@@ -48,6 +52,7 @@ const collections = [
   },
   {
     name: 'Corpus Sonorum',
+    color: 'var(--cyan)',
     fr: {
       subtitle: 'Matière sonore',
       desc: `Sound art et musique concrète orientés vers les matières sonores brutes : organiques, industrielles, artefactuelles, spéculatives. L'enregistrement comme geste. Le montage comme composition. Le son extrait de son contexte, transformé, laissé vieillir ou poussé à l'abstraction.`,
@@ -59,6 +64,7 @@ const collections = [
   },
   {
     name: 'Viva Vox',
+    color: 'var(--violet)',
     fr: {
       subtitle: 'Voix vivante',
       desc: `La voix humaine dans tous ses états — vivante, archivée, artificielle, trouvée. Poésie sonore, spoken word, chant, performance vocale, synthèse et traitement. Archives de parole, enregistrements historiques retravaillés. La voix comme matière première et comme site de mémoire.`,
@@ -77,31 +83,45 @@ export default function Collections() {
   return (
     <Layout>
       <h2>Collections</h2>
-      <p style={{ color: '#666', fontSize: '14px' }}>
+      <p className="caption">
         {fr
           ? 'Six lignes éditoriales, indicatives et évolutives. Une même œuvre peut relever de plusieurs collections.'
           : 'Six editorial lines, indicative and evolving. A single work may belong to more than one collection.'}
       </p>
 
-      <div style={{ marginTop: '40px' }}>
+      <div style={{ marginTop: '50px' }}>
         {collections.map((col, i) => {
           const c = fr ? col.fr : col.en
+          const last = i === collections.length - 1
           return (
             <div
               key={col.name}
+              className="col-item"
               style={{
-                marginBottom: '40px',
-                paddingBottom: '40px',
-                borderBottom: i < collections.length - 1 ? '1px solid #eee' : 'none',
+                marginBottom: '44px',
+                paddingBottom: '44px',
+                borderBottom: last ? 'none' : '1px dashed var(--border)',
               }}
             >
-              <h3 style={{ margin: '0 0 3px 0', fontSize: '1em', fontWeight: '600' }}>
+              <h3 style={{
+                margin: '0 0 4px 0',
+                fontSize: '22px',
+                fontWeight: 700,
+                color: col.color,
+                letterSpacing: '-0.01em',
+              }}>
                 {col.name}
               </h3>
-              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#999', fontStyle: 'italic', letterSpacing: '0.3px' }}>
+              <p style={{
+                margin: '0 0 14px 0',
+                fontFamily: "'Instrument Serif', serif",
+                fontStyle: 'italic',
+                fontSize: '15px',
+                color: 'var(--gray-relu)',
+              }}>
                 {c.subtitle}
               </p>
-              <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.75', color: '#444' }}>
+              <p style={{ margin: 0, fontSize: '15px', lineHeight: '1.75' }}>
                 {c.desc}
               </p>
             </div>
