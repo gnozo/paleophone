@@ -140,6 +140,45 @@ votre navigateur : la page ne fait aucune requête réseau et la matrice ne quit
   </div>
 </div>
 
+<!--editeur-nex-->
+<style>
+#ed .grille{overflow:auto;max-height:52vh;border:1px solid var(--trait);border-radius:5px;background:#fff;outline:none}
+#ed table.g{border-collapse:separate;border-spacing:0;font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+#ed table.g th{position:sticky;top:0;background:var(--ardoise);color:var(--encre-pale);font-weight:500;font-size:10px;padding:4px 0;min-width:22px;text-align:center;z-index:2;border-bottom:1px solid var(--trait)}
+#ed table.g th.t{left:0;z-index:3;text-align:left;padding:4px 8px;min-width:120px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--encre)}
+#ed table.g td{min-width:22px;height:22px;text-align:center;border-right:1px solid #eef0f3;border-bottom:1px solid #eef0f3;cursor:pointer;user-select:none;color:#8a929c;background:#f3f4f6}
+#ed table.g td.t{position:sticky;left:0;background:var(--papier);text-align:left;padding:0 8px;color:var(--encre);font-size:11px;z-index:1;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+#ed td.ok{background:#d9efdf;color:#1f5c33}
+#ed td.c1{background:#cfe3fb;color:#0d3f7a}#ed td.c2{background:#dcebfd;color:#0d3f7a}#ed td.c3{background:#e8f2fe;color:#0d3f7a}#ed td.c4{background:#f1f7ff;color:#0d3f7a}
+#ed td.sel{outline:2px solid var(--ocre);outline-offset:-2px;z-index:1;position:relative}
+#ed .loupe{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:center;margin:12px 0;padding:14px 16px;border:1px solid var(--trait);border-radius:6px;background:#fff}
+#ed .loupe .val{grid-row:span 4;font:700 64px/1 ui-monospace,SFMono-Regular,Menlo,monospace;width:96px;height:96px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#f3f4f6;color:#8a929c}
+#ed .loupe .val.ok{background:#d9efdf;color:#1f5c33}#ed .loupe .val.c{background:#cfe3fb;color:#0d3f7a}
+#ed .loupe .k{font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--encre-pale)}
+#ed .loupe .v{font-size:.95rem}
+#ed .leg span{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.78rem;margin-right:6px}
+#ed .hist{font-size:.8rem;max-height:160px;overflow:auto;border:1px solid var(--trait);border-radius:5px;padding:8px 10px;background:#fff}
+#ed .hist div{padding:2px 0;border-bottom:1px dashed #eef0f3}
+#ed .conf{background:#fdecec;border:1px solid #e8b4b4;border-radius:5px;padding:8px 10px;font-size:.84rem;margin-top:8px}
+@media (max-width:640px){#ed .loupe{grid-template-columns:1fr}#ed .loupe .val{grid-row:auto;width:72px;height:72px;font-size:44px}}
+</style>
+<div class="pan" id="ed">
+  <h2>1 bis · Éditeur de la matrice</h2>
+  <p class="aide">Cliquez une cellule ou déplacez-vous avec les flèches. Une touche d'état (<code>0</code>–<code>9</code>, <code>?</code>, <code>-</code>) corrige la cellule ; <code>Entrée</code> la confirme telle quelle ; <code>Retour arrière</code> rétablit la valeur d'origine. Gris : pas encore vue · vert : confirmée · bleu : corrigée, de plus en plus clair à chaque correction. Chaque geste est horodaté dans l'historique, avec la machine qui l'a fait.</p>
+  <div class="leg" style="margin:0 0 10px"><span style="background:#f3f4f6;color:#8a929c">non vue</span><span style="background:#d9efdf;color:#1f5c33">confirmée</span><span style="background:#cfe3fb;color:#0d3f7a">corrigée ×1</span><span style="background:#dcebfd;color:#0d3f7a">×2</span><span style="background:#e8f2fe;color:#0d3f7a">×3</span></div>
+  <div class="loupe" id="edLoupe"><div class="val" id="edVal">·</div><div class="k">taxon</div><div class="v" id="edTax">—</div><div class="k">caractère</div><div class="v" id="edCar">—</div><div class="k">origine → courant</div><div class="v" id="edOrig">—</div><div class="k">historique de la cellule</div><div class="v" id="edCell">—</div></div>
+  <div class="grille" id="edGrille" tabindex="0" aria-label="matrice éditable"></div>
+  <div class="etat" id="edEtat" style="margin-top:10px"></div>
+  <div class="rang" style="margin-top:12px">
+    <button class="ocre" id="edDl">Télécharger .nex + .paleo</button>
+    <button class="sec" id="edPaleo">Ouvrir un .paleo d'historique</button>
+    <button class="sec" id="edFuse">Fusionner des .paleo</button>
+    <input type="file" id="edFilPaleo" accept=".paleo,.json" hidden>
+    <input type="file" id="edFilFuse" accept=".paleo,.json" multiple hidden>
+  </div>
+  <p class="aide">Le <code>.paleo</code> est le journal de la matrice (format commun des outils Paléophone) : origine, empreinte SHA-256, sessions, chaque confirmation et correction. Déposez-le avec le <code>.nex</code> (même nom de base, ou glissés ensemble) : il est reconnu par l'empreinte. Sans lui, une nouvelle session démarre et le prochain <code>.paleo</code> indique depuis quand les changements sont enregistrés.</p>
+  <details><summary>Historique</summary><div class="hist" id="edHist">—</div><div id="edConf"></div></details>
+</div>
 <div class="pan">
   <h2>Versions de la matrice : corrections et effets sur les arbres</h2>
   <p class="aide">Chaque version est comparée à la référence. Les différences de codage sont listées
@@ -1442,6 +1481,166 @@ function majPicker(){
 if(REF){ $('version').value = 'REF'; choisitVersion('REF'); } else $('btDemo').click();
 
 </script>
+<script>
+/* ───────── éditeur de matrice + journal .paleo ───────── */
+const ED = { m: null, sel: {r: 0, c: 0}, hist: null, silence: false, nomBase: 'matrice', enAttente: [] };
+const edNow = () => new Date().toISOString();
+const edStamp = () => { const d = new Date(), z = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`; };
+const edId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+async function edSha(txt){ if(!crypto.subtle) return 'sha256-indisponible'; const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+const edMachine = () => ({ ua: navigator.userAgent, plateforme: navigator.platform || '', langue: navigator.language, ecran: `${screen.width}×${screen.height}@${devicePixelRatio || 1}`, fuseau: Intl.DateTimeFormat().resolvedOptions().timeZone || '', coeurs: navigator.hardwareConcurrency || null, memoire_go: navigator.deviceMemory || null });
+const edCel = c => typeof c === 'object' ? (c.poly ? '{' : '(') + c.set.join('') + (c.poly ? '}' : ')') : c;
+
+function edModele(D, txt, nom){
+  const cells = D.taxons.map(t => D.cellules.get(t).map(edCel));
+  return { taxons: D.taxons.slice(), nchar: D.nchar, lib: {...D.libelles}, MISSING: D.MISSING, GAP: D.GAP, orig: cells.map(r => r.slice()), cur: cells, nom, txt };
+}
+function edNouvelHist(sha, nom, m, anterieurInconnu){
+  const s = edSession(anterieurInconnu);
+  return { paleo: 1, kind: 'cladistique/edition', id: edId(), tool: {name: 'banc-cladistique', version: '2026-10-20'}, created: edNow(), modified: edNow(),
+    title: `Édition de ${nom}`, notes: '', assets: [{role: 'matrix', name: nom, uri: null, sha256: sha}],
+    payload: { source: {nom, sha256: sha, ntax: m.taxons.length, nchar: m.nchar}, sessions: [s], fusions: [] } };
+}
+function edSession(anterieurInconnu){ return { id: edId(), debut: edNow(), machine: edMachine(), anterieur_inconnu: !!anterieurInconnu, note: anterieurInconnu ? `historique antérieur non trouvé : les changements sont enregistrés à partir du ${edNow()}` : '', evenements: [] }; }
+const edSessionCour = () => ED.hist.payload.sessions[ED.hist.payload.sessions.length - 1];
+function edEtatCellules(){ // rejoue tout l'historique : clé "taxon|car" → {ok, n, dernier}
+  const et = new Map(); if(!ED.hist) return et;
+  const evs = ED.hist.payload.sessions.flatMap(s => s.evenements).sort((a, b) => a.t < b.t ? -1 : 1);
+  for(const e of evs){ const k = e.taxon + '|' + e.car; const x = et.get(k) || {ok: false, n: 0, vers: null};
+    if(e.type === 'confirme') x.ok = true; else if(e.type === 'corrige'){ x.n++; x.vers = e.vers; x.ok = false; } else if(e.type === 'retabli'){ x.n = 0; x.vers = null; x.ok = false; }
+    et.set(k, x); }
+  return et;
+}
+function edClasse(x){ if(!x) return ''; if(x.n > 0) return 'c' + Math.min(4, x.n); return x.ok ? 'ok' : ''; }
+
+function edInit(D, txt, nom, hist){
+  ED.m = edModele(D, txt, nom); ED.nomBase = slug((nom || 'matrice').replace(/\.(nex|nexus|txt)$/i, '').replace(/ \(édité\)$/, '')) || 'matrice';
+  edSha(txt).then(sha => {
+    const h = hist || ED.enAttente.find(p => p.payload && p.payload.source && (p.payload.source.sha256 === sha || p.assets && p.assets.some(a => a.sha256 === sha)));
+    ED.enAttente = [];
+    if(h){ ED.hist = h; if(h.payload.source.sha256 !== sha){ h.payload.sessions.push(edSession(false)); } else h.payload.sessions.push(edSession(false)); edRejoue(); }
+    else ED.hist = edNouvelHist(sha, nom || 'matrice', ED.m, true);
+    edRendu(); });
+}
+function edRejoue(){ // applique les corrections de l'historique au modèle courant
+  const et = edEtatCellules(); const ti = new Map(ED.m.taxons.map((t, i) => [t, i]));
+  for(const [k, x] of et){ const [t, c] = k.split('|'); const i = ti.get(t); if(i == null || !(+c >= 1 && +c <= ED.m.nchar)) continue; if(x.n > 0 && x.vers != null) ED.m.cur[i][+c - 1] = x.vers; }
+  edPousse(false);
+}
+function edRendu(){
+  const m = ED.m; if(!m) return; const et = edEtatCellules();
+  const g = $('edGrille');
+  g.innerHTML = `<table class="g"><thead><tr><th class="t">taxon</th>${Array.from({length: m.nchar}, (_, c) => `<th title="${esc(m.lib[c + 1] || '')}">${c + 1}</th>`).join('')}</tr></thead><tbody>${
+    m.taxons.map((t, r) => `<tr><td class="t" title="${esc(t)}">${esc(t)}</td>${m.cur[r].map((v, c) => `<td data-r="${r}" data-c="${c}" class="${edClasse(et.get(t + '|' + (c + 1)))}${r === ED.sel.r && c === ED.sel.c ? ' sel' : ''}">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const vus = [...et.values()].filter(x => x.ok || x.n).length, corr = [...et.values()].filter(x => x.n).length;
+  puces($('edEtat'), [[`${vus} / ${m.taxons.length * m.nchar} cellules vues`], [`${corr} corrigée(s)`, corr ? 'att' : ''], [`${ED.hist ? ED.hist.payload.sessions.length : 0} session(s)`], [ED.hist && edSessionCour().anterieur_inconnu ? 'historique antérieur inconnu' : 'historique rattaché', ED.hist && edSessionCour().anterieur_inconnu ? 'att' : 'ok']]);
+  edLoupe(); edHistRendu();
+}
+function edLoupe(){
+  const m = ED.m, {r, c} = ED.sel, t = m.taxons[r], k = t + '|' + (c + 1), x = edEtatCellules().get(k);
+  $('edVal').textContent = m.cur[r][c]; $('edVal').className = 'val ' + (x ? (x.n ? 'c' : x.ok ? 'ok' : '') : '');
+  $('edTax').textContent = `${t} (${r + 1} / ${m.taxons.length})`; $('edCar').textContent = `${c + 1} / ${m.nchar}${m.lib[c + 1] ? ' · ' + m.lib[c + 1] : ''}`;
+  $('edOrig').textContent = `${m.orig[r][c]} → ${m.cur[r][c]}`;
+  const evs = ED.hist ? ED.hist.payload.sessions.flatMap(s => s.evenements.filter(e => e.taxon === t && e.car === c + 1).map(e => `${e.t.slice(0, 19).replace('T', ' ')} ${e.type}${e.type === 'corrige' ? ' ' + e.de + ' → ' + e.vers : ''}`)) : [];
+  $('edCell').textContent = evs.length ? evs.join(' · ') : 'aucun geste';
+  const td = $('edGrille').querySelector(`td[data-r="${r}"][data-c="${c}"]`); if(td) td.scrollIntoView({block: 'nearest', inline: 'nearest'});
+}
+function edHistRendu(){
+  if(!ED.hist){ $('edHist').textContent = '—'; return; }
+  const L = []; for(const s of ED.hist.payload.sessions){ L.push(`<div><b>session</b> ${s.debut.slice(0, 19).replace('T', ' ')} · ${esc((s.machine.plateforme || '') + ' · ' + s.machine.ecran)}${s.anterieur_inconnu ? ' · <i>antérieur inconnu</i>' : ''} · ${s.evenements.length} geste(s)</div>`);
+    for(const e of s.evenements.slice(-200)) L.push(`<div>${e.t.slice(11, 19)} ${esc(e.taxon)} · car. ${e.car} · ${e.type}${e.type === 'corrige' ? ' ' + esc(e.de) + ' → ' + esc(e.vers) : ''}</div>`); }
+  for(const f of ED.hist.payload.fusions || []) L.push(`<div><b>fusion</b> ${f.t.slice(0, 19).replace('T', ' ')} · ${f.de.length} fichiers · ${f.conflits} conflit(s)</div>`);
+  $('edHist').innerHTML = L.join('');
+}
+function edGeste(type, vers){
+  const m = ED.m, {r, c} = ED.sel, t = m.taxons[r], de = m.cur[r][c];
+  if(type === 'corrige'){ if(vers === de) return; m.cur[r][c] = vers; }
+  if(type === 'retabli'){ if(m.cur[r][c] === m.orig[r][c]) return; m.cur[r][c] = m.orig[r][c]; }
+  edSessionCour().evenements.push({t: edNow(), taxon: t, car: c + 1, type, de, vers: type === 'corrige' ? vers : m.cur[r][c]});
+  ED.hist.modified = edNow();
+  const td = $('edGrille').querySelector(`td[data-r="${r}"][data-c="${c}"]`); if(td){ td.textContent = m.cur[r][c]; td.className = edClasse(edEtatCellules().get(t + '|' + (c + 1))) + ' sel'; }
+  if(type !== 'confirme') edPousse(true); else { edLoupe(); edHistRendu(); }
+  edCompte();
+}
+function edCompte(){ const m = ED.m, et = edEtatCellules(); const vus = [...et.values()].filter(x => x.ok || x.n).length, corr = [...et.values()].filter(x => x.n).length;
+  puces($('edEtat'), [[`${vus} / ${m.taxons.length * m.nchar} cellules vues`], [`${corr} corrigée(s)`, corr ? 'att' : ''], [`${ED.hist ? ED.hist.payload.sessions.length : 0} session(s)`], [ED.hist && edSessionCour().anterieur_inconnu ? 'historique antérieur inconnu' : 'historique rattaché', ED.hist && edSessionCour().anterieur_inconnu ? 'att' : 'ok']]); }
+function edNexus(){
+  const m = ED.m, L = ['#NEXUS', '', `[ Édité dans le banc cladistique le ${edNow().slice(0, 19)} ; journal : ${ED.hist ? ED.hist.id : '—'} ; source sha256 ${ED.hist ? ED.hist.payload.source.sha256.slice(0, 16) : '—'}… ]`, '',
+    'BEGIN TAXA;', `\tDIMENSIONS NTAX=${m.taxons.length};`, '\tTAXLABELS']; m.taxons.forEach(t => L.push('\t\t' + qN(t))); L.push('\t;', 'END;', '',
+    'BEGIN CHARACTERS;', `\tDIMENSIONS NCHAR=${m.nchar};`, `\tFORMAT DATATYPE=STANDARD MISSING=${m.MISSING} GAP=${m.GAP} SYMBOLS="0123456789";`);
+  if(Object.keys(m.lib).length){ L.push('\tCHARSTATELABELS'); for(let i = 1; i <= m.nchar; i++) L.push(`\t\t${i} ${qN(m.lib[i] || ('car' + i))}${i < m.nchar ? ',' : ''}`); L.push('\t;'); }
+  L.push('\tMATRIX'); const w = Math.max(...m.taxons.map(t => qN(t).length)) + 2;
+  m.taxons.forEach((t, r) => L.push('\t\t' + qN(t).padEnd(w) + m.cur[r].join(''))); L.push('\t;', 'END;', '');
+  return L.join('\n');
+}
+function edPousse(recharge){ // le reste du banc travaille sur la matrice éditée
+  const txt = edNexus(); ED.m.txt = txt;
+  if(recharge !== false){ ED.silence = true; try{ chargeNex(txt, ED.m.nom + ' (édité)'); } finally { ED.silence = false; } }
+  edLoupe(); edHistRendu();
+}
+$('edGrille').addEventListener('click', e => { const td = e.target.closest('td[data-r]'); if(!td) return; edSelect(+td.dataset.r, +td.dataset.c); $('edGrille').focus(); });
+function edSelect(r, c){ const g = $('edGrille'); g.querySelectorAll('td.sel').forEach(x => x.classList.remove('sel')); ED.sel = {r, c}; const td = g.querySelector(`td[data-r="${r}"][data-c="${c}"]`); if(td) td.classList.add('sel'); edLoupe(); }
+$('edGrille').addEventListener('keydown', e => {
+  if(!ED.m) return; const m = ED.m; let {r, c} = ED.sel;
+  if(e.key === 'ArrowUp') r--; else if(e.key === 'ArrowDown') r++; else if(e.key === 'ArrowLeft') c--; else if(e.key === 'ArrowRight') c++;
+  else if(e.key === 'Enter' || e.key === ' '){ edGeste('confirme'); if(e.shiftKey) r++; else c++; }
+  else if(e.key === 'Backspace' || e.key === 'Delete'){ edGeste('retabli'); }
+  else if(/^[0-9?\-]$/.test(e.key) || e.key === m.MISSING || e.key === m.GAP){ edGeste('corrige', e.key); c++; }
+  else if(e.key === 'Home') c = 0; else if(e.key === 'End') c = m.nchar - 1; else return;
+  e.preventDefault();
+  if(c >= m.nchar){ c = 0; r++; } if(c < 0){ c = m.nchar - 1; r--; }
+  r = Math.max(0, Math.min(m.taxons.length - 1, r)); c = Math.max(0, Math.min(m.nchar - 1, c));
+  edSelect(r, c);
+});
+$('edDl').onclick = async () => {
+  if(!ED.m || !ED.hist) return; const st = edStamp(), nom = ED.nomBase + '_' + st;
+  const txt = edNexus(); const sha = await edSha(txt);
+  ED.hist.modified = edNow(); ED.hist.assets = [ED.hist.assets[0], {role: 'matrix', name: nom + '.nex', uri: null, sha256: sha}].filter(Boolean);
+  telecharge(nom + '.nex', txt); setTimeout(() => telecharge(nom + '.paleo', JSON.stringify(ED.hist, null, 1), 'application/json'), 400);
+};
+$('edPaleo').onclick = () => $('edFilPaleo').click();
+$('edFilPaleo').onchange = () => { const f = $('edFilPaleo').files[0]; if(f) f.text().then(t => edPrendPaleo(t, f.name)); $('edFilPaleo').value = ''; };
+function edPrendPaleo(txt, nom){
+  let j; try{ j = JSON.parse(txt); }catch(_){ return alert('.paleo illisible'); }
+  if(!j || typeof j.paleo !== 'number' || j.paleo > 1 || j.kind !== 'cladistique/edition') return alert(".paleo d'un autre outil ou d'une autre version : non chargé");
+  if(!ED.m){ ED.enAttente.push(j); return; }
+  const shaOrig = ED.hist ? ED.hist.payload.source.sha256 : null;
+  const connu = j.payload.source.sha256 === shaOrig || (j.assets || []).some(a => a.sha256 === shaOrig);
+  if(!connu && !confirm(`Ce journal (${nom}) ne porte pas l'empreinte de la matrice chargée. L'appliquer quand même ?`)) return;
+  const courante = ED.hist ? ED.hist.payload.sessions.filter(s => s.evenements.length) : [];
+  ED.hist = j; j.payload.sessions.push(...courante, edSession(false)); j.payload.fusions = j.payload.fusions || [];
+  edRejoue(); edRendu();
+}
+$('edFuse').onclick = () => $('edFilFuse').click();
+$('edFilFuse').onchange = async () => {
+  const fs = [...$('edFilFuse').files]; $('edFilFuse').value = ''; if(!fs.length) return;
+  const js = []; for(const f of fs){ try{ const j = JSON.parse(await f.text()); if(j.kind === 'cladistique/edition') js.push(j); }catch(_){} }
+  if(ED.hist) js.unshift(ED.hist);
+  if(js.length < 2) return alert('il faut au moins deux journaux');
+  // fusion : union des sessions, triées par début ; conflit = même cellule corrigée vers des valeurs différentes dans des sessions qui se chevauchent dans le temps
+  const sessions = js.flatMap(j => j.payload.sessions).filter((s, i, a) => a.findIndex(x => x.id === s.id) === i).sort((a, b) => a.debut < b.debut ? -1 : 1);
+  const parCell = new Map(); for(const s of sessions) for(const e of s.evenements) if(e.type === 'corrige'){ const k = e.taxon + '|' + e.car; if(!parCell.has(k)) parCell.set(k, []); parCell.get(k).push({s: s.id, t: e.t, vers: e.vers}); }
+  const conflits = [];
+  for(const [k, l] of parCell){ const finales = new Map(); for(const e of l) finales.set(e.s, e); const vals = new Set([...finales.values()].map(e => e.vers)); if(vals.size > 1) conflits.push({cellule: k, valeurs: [...finales.values()].map(e => ({session: e.s, t: e.t, vers: e.vers}))}); }
+  const base = js[0]; base.payload.sessions = sessions; base.payload.fusions = base.payload.fusions || []; base.payload.fusions.push({t: edNow(), de: js.map(j => j.id), conflits: conflits.length});
+  base.modified = edNow(); ED.hist = base; ED.hist.payload.sessions.push(edSession(false));
+  if(ED.m){ edRejoue(); edRendu(); }
+  $('edConf').innerHTML = conflits.length ? `<div class="conf"><b>${conflits.length} conflit(s)</b> : la valeur la plus récente l'emporte, les autres restent dans le journal.<br>${conflits.map(c => esc(c.cellule.replace('|', ' · car. ')) + ' : ' + c.valeurs.map(v => esc(v.vers) + ' (' + v.t.slice(0, 16).replace('T', ' ') + ')').join(' / ')).join('<br>')}</div>` : `<div class="res">Fusion sans conflit : ${sessions.length} sessions.</div>`;
+};
+// branchement : toute matrice chargée (hors rechargement par l'éditeur) réinitialise l'éditeur
+(function(){ const orig = chargeNex; chargeNex = function(txt, nom, defaut){ orig(txt, nom, defaut); if(!ED.silence && D && TXT === txt){ ED.hist = null; edInit(D, txt, nom); } }; })();
+if(D && TXT) edInit(D, TXT, VERSION_COURANTE ? VERSION_COURANTE.court : 'matrice');
+// un .paleo déposé dans la zone de la matrice est reconnu
+(function(){ const z = $('zoneNex'), inp = $('filNex'); inp.setAttribute('accept', '.nex,.nexus,.txt,.paleo,.json'); inp.multiple = true;
+  const prend = files => { const fs = [...files]; const pal = fs.filter(f => /\.(paleo|json)$/i.test(f.name)), nex = fs.filter(f => !/\.(paleo|json)$/i.test(f.name));
+    Promise.all(pal.map(f => f.text())).then(ts => { ts.forEach((t, i) => { try{ const j = JSON.parse(t); if(j.kind === 'cladistique/edition') ED.enAttente.push(j); }catch(_){} });
+      if(nex[0]) lisFichier(nex[0], (t, n) => { VERSION_COURANTE = null; $('version').value = ''; chargeNex(t, n); if(typeof majPicker === 'function') majPicker(); });
+      else if(ED.m && ED.enAttente.length){ const j = ED.enAttente.pop(); ED.enAttente = []; edPrendPaleo(JSON.stringify(j), 'déposé'); } }); };
+  inp.onchange = () => { if(inp.files.length) prend(inp.files); inp.value = ''; };
+  z.addEventListener('drop', e => { e.stopImmediatePropagation(); e.preventDefault(); z.classList.remove('chaud'); prend(e.dataTransfer.files); }, true);
+})();
+</script>
+<!--/editeur-nex-->
 <!--paleo-badge-->
 <style>
 #paleoP{position:fixed;top:10px;right:10px;z-index:9000;display:flex;gap:8px;align-items:center;font-family:Inter,system-ui,sans-serif}

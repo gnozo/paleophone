@@ -10,6 +10,7 @@ Ouvrir `index.html` dans un navigateur. Aucune ressource en ligne.
 - recherche heuristique (additions aléatoires, TBR), longueur des arbres
 - consensus strict et majoritaire, bootstrap
 - comparaison de versions de matrice
+- éditeur de cellules : confirmations et corrections horodatées, journal `.paleo` à côté du `.nex`, fusion de journaux
 
 ---
 
