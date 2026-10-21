@@ -1,4 +1,6 @@
-# Banc cladistique
+# BRANCH
+
+BRANCH Recursively Analyses Nested Character Hierarchies.
 
 Recherche d'arbres les plus parcimonieux, consensus et bootstrap sur une matrice de caractères, dans le navigateur.
 
