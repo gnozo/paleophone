@@ -21,7 +21,7 @@ export const SUITE: Tool[] = [
   { name: 'Diaclase', href: '/diaclase/', color: 'var(--hot)',
     fr: 'Enregistrement et analyse du rythme des commandes d\'une manette de jeu.',
     en: 'Recording and rhythm analysis of gamepad inputs.' },
-  { name: 'Banc cladistique', href: '/cladistique/', color: 'var(--lime)',
+  { name: 'BRANCH', href: '/cladistique/', color: 'var(--lime)',
     fr: 'Parcimonie, consensus et bootstrap sur une matrice de caractères, dans le navigateur.',
     en: 'Parsimony, consensus and bootstrap on a character matrix, in the browser.' },
   { name: 'Knap-Knapp', href: 'http://benjaminefrati.com/knap-knapp', color: 'var(--orange)', external: true,
