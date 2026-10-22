@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   trailingSlash: true,
+  async redirects() {
+    return [{ source: '/cladistique/:path*', destination: '/branche/:path*', permanent: true }]
+  },
   swcMinify: true,
   i18n: {
     locales: ['fr', 'en'],
