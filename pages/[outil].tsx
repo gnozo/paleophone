@@ -3,7 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { promises as fs } from 'fs'
 import path from 'path'
 
-const OUTILS = ['eidolon', 'diaclase', 'luciDStrata', 'cladistique', 'datafarmingsimulator']
+const OUTILS = ['eidolon', 'diaclase', 'luciDStrata', 'branche', 'datafarmingsimulator']
 
 export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
   const outil = String(params?.outil || '')
