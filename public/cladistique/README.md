@@ -1,6 +1,6 @@
-# BRANCH
+# BRANCHE
 
-BRANCH Recursively Analyses Nested Character Hierarchies.
+BRANCHE Recursively Analyses Nested Character Hierarchies and Entanglements.
 
 Recherche d'arbres les plus parcimonieux, consensus et bootstrap sur une matrice de caractères, dans le navigateur.
 

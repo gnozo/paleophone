@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BRANCH · Paléophone</title>
+<title>BRANCHE · Paléophone</title>
 <style>
 :root{
   --ardoise:#eceef1; --papier:#f8f9fb; --encre:#1b2026; --encre-pale:#5d6672; --trait:#d4d9e0;
@@ -100,8 +100,8 @@ ol,ul{padding-left:1.3em;margin:.6em 0} li{margin:.3em 0}
 <body>
 <div class="wrap">
 
-<h1>BRANCH</h1>
-<p class="aide" style="margin:-6px 0 10px"><b>B</b>RANCH <b>R</b>ecursively <b>A</b>nalyses <b>N</b>ested <b>C</b>haracter <b>H</b>ierarchies.</p>
+<h1>BRANCHE</h1>
+<p class="aide" style="margin:-6px 0 10px"><b>B</b>RANCHE <b>R</b>ecursively <b>A</b>nalyses <b>N</b>ested <b>C</b>haracter <b>H</b>ierarchies and <b>E</b>ntanglements.</p>
 <p class="sous">Parcimonie de Fitch, recherche heuristique TBR avec collecte des arbres également
 parcimonieux, consensus strict et majoritaire, bootstrap, tests de partition. Tout est calculé dans
 votre navigateur : la page ne fait aucune requête réseau et la matrice ne quitte pas votre machine.</p>
@@ -1104,7 +1104,7 @@ function nexusSelection(sel){
   const statut = VERSION_COURANTE ? (VERSION_COURANTE.groupe === 'canon' ? 'MATRICE DE RÉFÉRENCE' : 'MATRICE DE TEST') : 'hors bibliothèque';
   const exT = D.taxons.filter(t => !sel.taxons.includes(t));
   const exC = []; for(let i = 1; i <= D.nchar; i++) if(!sel.cols.includes(i)) exC.push(i);
-  const L = ['#NEXUS', '', `[ Exporté de BRANCH le ${jour()} — ${statut} ]`, `[ Source : ${src} ]`,
+  const L = ['#NEXUS', '', `[ Exporté de BRANCHE le ${jour()} — ${statut} ]`, `[ Source : ${src} ]`,
     `[ Taxons exclus : ${exT.length ? exT.join(', ') : 'aucun'} ]`, `[ Caractères exclus (numéros de la source) : ${exC.length ? exC.join(',') : 'aucun'} ]`,
     `[ Extra-groupe choisi dans le banc : ${sel.ogNoms.length ? sel.ogNoms.join(', ') : 'aucun'} ; lacunes : ${sel.gap === 'missing' ? 'données manquantes' : 'état supplémentaire'} ]`, '',
     'BEGIN TAXA;', `\tDIMENSIONS NTAX=${sel.taxons.length};`, '\tTAXLABELS'];
@@ -1211,7 +1211,7 @@ $('btGo').onclick = () => {
       <details><summary>Newick du consensus majoritaire</summary><div><pre>${esc(nwm)}</pre></div></details>
       <details><summary>Les ${Math.min(r.ntrees, 2000)} arbres (Newick, enracinés pour l'écriture sur ${esc(r.taxons[sel.racine])})</summary><div><pre>${esc(r.newick.map(x => x + ';').join('\n'))}</pre></div></details>
       <div class="rang" style="margin-top:10px"><button class="sec" id="dlMPT">Télécharger les ${Math.min(r.ntrees, 2000)} arbres (.tre)</button><button class="sec" id="dlCons">Télécharger les consensus (.tre)</button></div>`;
-    const entete = '#NEXUS\n[ BRANCH, ' + jour() + ' — ' + (VERSION_COURANTE ? VERSION_COURANTE.fichier : 'fichier déposé') + ' — ' + r.n + ' taxons, ' + r.nchar + ' caractères, L = ' + r.L + ' ]\nBEGIN TREES;\n';
+    const entete = '#NEXUS\n[ BRANCHE, ' + jour() + ' — ' + (VERSION_COURANTE ? VERSION_COURANTE.fichier : 'fichier déposé') + ' — ' + r.n + ' taxons, ' + r.nchar + ' caractères, L = ' + r.L + ' ]\nBEGIN TREES;\n';
     $('dlMPT').onclick = e => telechargeOuCopie(baseNom() + '_MPT_L' + r.L + '_' + jour() + '.tre', entete + r.newick.map((x, k) => '\ttree MPT_' + (k + 1) + ' = [&U] ' + x + ';').join('\n') + '\nEND;\n', e.target);
     $('dlCons').onclick = e => telechargeOuCopie(baseNom() + '_consensus_' + jour() + '.tre', entete + '\ttree strict = [&R] ' + nw + '\n\ttree majoritaire = [&R] ' + nwm + '\nEND;\n', e.target);
   });
@@ -1498,7 +1498,7 @@ function edModele(D, txt, nom){
 }
 function edNouvelHist(sha, nom, m, anterieurInconnu){
   const s = edSession(anterieurInconnu);
-  return { paleo: 1, kind: 'branch/edition', id: edId(), tool: {name: 'branch', version: '2026-10-20'}, created: edNow(), modified: edNow(),
+  return { paleo: 1, kind: 'branche/edition', id: edId(), tool: {name: 'branche', version: '2026-10-20'}, created: edNow(), modified: edNow(),
     title: `Édition de ${nom}`, notes: '', assets: [{role: 'matrix', name: nom, uri: null, sha256: sha}],
     payload: { source: {nom, sha256: sha, ntax: m.taxons.length, nchar: m.nchar}, sessions: [s], fusions: [] } };
 }
@@ -1566,7 +1566,7 @@ function edGeste(type, vers){
 function edCompte(){ const m = ED.m, et = edEtatCellules(); const vus = [...et.values()].filter(x => x.ok || x.n).length, corr = [...et.values()].filter(x => x.n).length;
   puces($('edEtat'), [[`${vus} / ${m.taxons.length * m.nchar} cellules vues`], [`${corr} corrigée(s)`, corr ? 'att' : ''], [`${ED.hist ? ED.hist.payload.sessions.length : 0} session(s)`], [ED.hist && edSessionCour().anterieur_inconnu ? 'historique antérieur inconnu' : 'historique rattaché', ED.hist && edSessionCour().anterieur_inconnu ? 'att' : 'ok']]); }
 function edNexus(){
-  const m = ED.m, L = ['#NEXUS', '', `[ Édité dans BRANCH le ${edNow().slice(0, 19)} ; journal : ${ED.hist ? ED.hist.id : '—'} ; source sha256 ${ED.hist ? ED.hist.payload.source.sha256.slice(0, 16) : '—'}… ]`, '',
+  const m = ED.m, L = ['#NEXUS', '', `[ Édité dans BRANCHE le ${edNow().slice(0, 19)} ; journal : ${ED.hist ? ED.hist.id : '—'} ; source sha256 ${ED.hist ? ED.hist.payload.source.sha256.slice(0, 16) : '—'}… ]`, '',
     'BEGIN TAXA;', `\tDIMENSIONS NTAX=${m.taxons.length};`, '\tTAXLABELS']; m.taxons.forEach(t => L.push('\t\t' + qN(t))); L.push('\t;', 'END;', '',
     'BEGIN CHARACTERS;', `\tDIMENSIONS NCHAR=${m.nchar};`, `\tFORMAT DATATYPE=STANDARD MISSING=${m.MISSING} GAP=${m.GAP} SYMBOLS="0123456789";`);
   if(Object.keys(m.lib).length){ L.push('\tCHARSTATELABELS'); for(let i = 1; i <= m.nchar; i++) L.push(`\t\t${i} ${qN(m.lib[i] || ('car' + i))}${i < m.nchar ? ',' : ''}`); L.push('\t;'); }
@@ -1603,7 +1603,7 @@ $('edPaleo').onclick = () => $('edFilPaleo').click();
 $('edFilPaleo').onchange = () => { const f = $('edFilPaleo').files[0]; if(f) f.text().then(t => edPrendPaleo(t, f.name)); $('edFilPaleo').value = ''; };
 function edPrendPaleo(txt, nom){
   let j; try{ j = JSON.parse(txt); }catch(_){ return alert('.paleo illisible'); }
-  if(!j || typeof j.paleo !== 'number' || j.paleo > 1 || !['branch/edition', 'cladistique/edition'].includes(j.kind)) return alert(".paleo d'un autre outil ou d'une autre version : non chargé");
+  if(!j || typeof j.paleo !== 'number' || j.paleo > 1 || !['branche/edition', 'branch/edition', 'cladistique/edition'].includes(j.kind)) return alert(".paleo d'un autre outil ou d'une autre version : non chargé");
   if(!ED.m){ ED.enAttente.push(j); return; }
   const shaOrig = ED.hist ? ED.hist.payload.source.sha256 : null;
   const connu = j.payload.source.sha256 === shaOrig || (j.assets || []).some(a => a.sha256 === shaOrig);
@@ -1615,7 +1615,7 @@ function edPrendPaleo(txt, nom){
 $('edFuse').onclick = () => $('edFilFuse').click();
 $('edFilFuse').onchange = async () => {
   const fs = [...$('edFilFuse').files]; $('edFilFuse').value = ''; if(!fs.length) return;
-  const js = []; for(const f of fs){ try{ const j = JSON.parse(await f.text()); if(['branch/edition', 'cladistique/edition'].includes(j.kind)) js.push(j); }catch(_){} }
+  const js = []; for(const f of fs){ try{ const j = JSON.parse(await f.text()); if(['branche/edition', 'branch/edition', 'cladistique/edition'].includes(j.kind)) js.push(j); }catch(_){} }
   if(ED.hist) js.unshift(ED.hist);
   if(js.length < 2) return alert('il faut au moins deux journaux');
   // fusion : union des sessions, triées par début ; conflit = même cellule corrigée vers des valeurs différentes dans des sessions qui se chevauchent dans le temps
@@ -1634,7 +1634,7 @@ if(D && TXT) edInit(D, TXT, VERSION_COURANTE ? VERSION_COURANTE.court : 'matrice
 // un .paleo déposé dans la zone de la matrice est reconnu
 (function(){ const z = $('zoneNex'), inp = $('filNex'); inp.setAttribute('accept', '.nex,.nexus,.txt,.paleo,.json'); inp.multiple = true;
   const prend = files => { const fs = [...files]; const pal = fs.filter(f => /\.(paleo|json)$/i.test(f.name)), nex = fs.filter(f => !/\.(paleo|json)$/i.test(f.name));
-    Promise.all(pal.map(f => f.text())).then(ts => { ts.forEach((t, i) => { try{ const j = JSON.parse(t); if(['branch/edition', 'cladistique/edition'].includes(j.kind)) ED.enAttente.push(j); }catch(_){} });
+    Promise.all(pal.map(f => f.text())).then(ts => { ts.forEach((t, i) => { try{ const j = JSON.parse(t); if(['branche/edition', 'branch/edition', 'cladistique/edition'].includes(j.kind)) ED.enAttente.push(j); }catch(_){} });
       if(nex[0]) lisFichier(nex[0], (t, n) => { VERSION_COURANTE = null; $('version').value = ''; chargeNex(t, n); if(typeof majPicker === 'function') majPicker(); });
       else if(ED.m && ED.enAttente.length){ const j = ED.enAttente.pop(); ED.enAttente = []; edPrendPaleo(JSON.stringify(j), 'déposé'); } }); };
   inp.onchange = () => { if(inp.files.length) prend(inp.files); inp.value = ''; };
@@ -1663,7 +1663,7 @@ body>header,#top{padding-right:96px!important}
 <div id="paleoP"><button class="new" type="button" aria-haspopup="dialog">NEW?</button><a class="p" href="https://paleophone.fr/outils/" title="Paléophone · outils">P</a></div>
 <div id="paleoNew" role="dialog" aria-modal="true"><div class="box"><h2></h2><p class="t1"></p><p class="t2"></p><p class="t3"></p><div class="r"><a href="https://paleophone.fr/outils/">Paléophone · outils</a><span><button type="button" class="lang">EN</button> <button type="button" class="close">fermer</button></span></div></div></div>
 <script>(function(){
-var T={"fr": ["Chercher les arbres les plus parcimonieux d'une matrice de caractères, puis mesurer leur accord (consensus) et leur robustesse (bootstrap).", "Déposer une matrice NEXUS ou choisir une matrice d'essai, lancer la recherche, lire les consensus ; tout se calcule dans l'onglet.", "Page HTML unique, calcul dans un Web Worker, aucune ressource en ligne ; moteur contrôlé contre un logiciel établi sur une matrice réelle."], "en": ["Search for the most parsimonious trees of a character matrix, then measure their agreement (consensus) and robustness (bootstrap).", "Drop a NEXUS matrix or pick a trial matrix, run the search, read the consensus trees; everything is computed in the tab.", "Single HTML page, computation in a Web Worker, no online resource; engine checked against an established program on a real matrix."]}, titre="BRANCH";
+var T={"fr": ["Chercher les arbres les plus parcimonieux d'une matrice de caractères, puis mesurer leur accord (consensus) et leur robustesse (bootstrap).", "Déposer une matrice NEXUS ou choisir une matrice d'essai, lancer la recherche, lire les consensus ; tout se calcule dans l'onglet.", "Page HTML unique, calcul dans un Web Worker, aucune ressource en ligne ; moteur contrôlé contre un logiciel établi sur une matrice réelle."], "en": ["Search for the most parsimonious trees of a character matrix, then measure their agreement (consensus) and robustness (bootstrap).", "Drop a NEXUS matrix or pick a trial matrix, run the search, read the consensus trees; everything is computed in the tab.", "Single HTML page, computation in a Web Worker, no online resource; engine checked against an established program on a real matrix."]}, titre="BRANCHE";
 var lang=(navigator.language||'fr').slice(0,2)==='en'?'en':'fr';
 var b=document.querySelector('#paleoP .new'), d=document.getElementById('paleoNew');
 function fill(){d.querySelector('h2').textContent=titre; ['t1','t2','t3'].forEach(function(k,i){d.querySelector('.'+k).textContent=T[lang][i];});

@@ -14,7 +14,7 @@ const TOOLS = [
   { href: '/luciDStrata/', label: 'LucidStrata' },
   { href: '/eidolon/', label: 'Eidolon' },
   { href: '/diaclase/', label: 'Diaclase' },
-  { href: '/cladistique/', label: 'BRANCH' },
+  { href: '/cladistique/', label: 'BRANCHE' },
   { href: 'http://benjaminefrati.com/knap-knapp', label: 'Knap-Knapp ↗' },
 ]
 
