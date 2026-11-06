@@ -16,7 +16,7 @@ const TOOLS = [
   { href: '/diaclase/', label: 'Diaclase' },
   { href: '/branche/', label: 'BRANCHE' },
   { href: 'http://benjaminefrati.com/knap-knapp', label: 'Knap-Knapp ↗' },
-  { href: '/outils/', label: 'ORBE · Paléo-Astro-Phone (à venir)' },
+  { href: '/archeophone/', label: 'Archéophone' },
 ]
 
 export default function Layout({ children, dense = false }: LayoutProps) {
