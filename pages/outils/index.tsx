@@ -27,6 +27,12 @@ export const SUITE: Tool[] = [
   { name: 'Knap-Knapp', href: 'http://benjaminefrati.com/knap-knapp', color: 'var(--orange)', external: true,
     fr: 'Simulateur de taille de la pierre.',
     en: 'Flint-knapping simulator.' },
+  { name: 'ORBE', href: '/outils/', color: 'var(--cyan)',
+    fr: 'Instrument à dessiner : un geste sur une cible devient une boucle ; les strates se superposent. À paraître.',
+    en: 'A drawing instrument: a gesture on a target becomes a loop; strata stack up. Forthcoming.' },
+  { name: 'Paléo-Astro-Phone', href: '/outils/', color: 'var(--gold)',
+    fr: 'Le ciel d\'une grotte à une date donnée, depuis le sol, avec ses noms d\'étoiles selon les cultures. À paraître.',
+    en: 'The sky above a cave at a given date, seen from the ground, with star names across cultures. Forthcoming.' },
 ]
 
 /** Hors suite. */
@@ -54,7 +60,7 @@ export default function Outils() {
   return (
     <Layout>
       <p className="small-label" style={{ color: 'var(--violet)' }}>{fr ? 'Suite Paléophone' : 'Paléophone suite'}</p>
-      <h2>{fr ? 'Outils' : 'Tools'}</h2>
+      <h2>Instruments</h2>
       <p className="caption" style={{ maxWidth: '600px' }}>
         {fr ? 'Pages web autonomes, sans serveur ni compte. Les fichiers ne quittent pas votre machine.'
             : 'Standalone web pages, no server, no account. Files never leave your machine.'}

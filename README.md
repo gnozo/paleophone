@@ -1,6 +1,8 @@
 # PALÉOPHONE
 
-Site web du label associatif PALÉOPHONE, construit avec Next.js.
+Site web du label associatif PALÉOPHONE, construit avec Next.js. Les instruments (`public/`) sont publiés sous GPL-3.0-or-later.
+
+Conçu et dirigé par Benjamin Efrati ; programmé avec l'aide d'assistants de code.
 
 ## Structure
 

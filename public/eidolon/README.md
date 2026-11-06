@@ -22,4 +22,4 @@ Version 2.0.0 19/10/2026
 
 ---
 
-Un outil [Paléophone](https://paleophone.fr). Licence GPL-3.0-or-later.
+Un instrument [Paléophone](https://paleophone.fr), conçu et dirigé par Benjamin Efrati, programmé avec l'aide d'assistants de code. Licence GPL-3.0-or-later.

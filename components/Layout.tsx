@@ -16,6 +16,7 @@ const TOOLS = [
   { href: '/diaclase/', label: 'Diaclase' },
   { href: '/branche/', label: 'BRANCHE' },
   { href: 'http://benjaminefrati.com/knap-knapp', label: 'Knap-Knapp ↗' },
+  { href: '/outils/', label: 'ORBE · Paléo-Astro-Phone (à venir)' },
 ]
 
 export default function Layout({ children, dense = false }: LayoutProps) {
@@ -78,7 +79,7 @@ export default function Layout({ children, dense = false }: LayoutProps) {
               }
             }}
           >
-            {fr ? 'Outils' : 'Tools'} <span className="nav-dropdown-arrow">▾</span>
+            Instruments <span className="nav-dropdown-arrow">▾</span>
           </Link>
 
           <span className={`nav-dropdown-menu${dropOpen ? ' open' : ''}`}>
